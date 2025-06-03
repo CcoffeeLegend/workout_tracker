@@ -7,6 +7,7 @@ def login_prompt() -> None:
     else: 
         user_login()
 
+
 def user_registration() -> None:
     #This function runs for new users, prompting for username and password, saving that to json, then heading to create_routine    
 
@@ -15,9 +16,11 @@ def user_registration() -> None:
 
     create_routine()
 
+
 def create_routine() -> None:
     #This function runs for new users
     add_exercise()
+
 
 def add_exercise() -> None:
     #This function adds exercises to the routine
@@ -33,6 +36,7 @@ def add_exercise() -> None:
     print(f"So you'd like to do {sets} sets of {reps} reps of {exercise}?")
     add_confirm = input()
     if add_confirm = True:
+        #implement adding the exercise to the routine here
         print(f"{exercise} added. Would you like to add another exercise?")
         add_another = input()
         if add_another = True:
