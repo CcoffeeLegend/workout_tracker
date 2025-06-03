@@ -1,0 +1,36 @@
+This program is intended to be a workout routine tracker.
+
+Minimum Specifications:
+1. User information tracking across logins(login information, routine chart)
+2. menu for user to select functional options (start a workout, quit, add exercise, remove exercise, change sets and reps)
+3. if new user, extra steps for creation of one upon registration. existing users straight to menu
+
+Final Specification:
+1. Create a GUI
+
+Optional Specifications:
+1. provide recommended rep and set ranges, adjusted for routine status set as "Bodybuilding" or "Powerlifting"
+2. multiple routines, default routines
+3. toggle auto-increment weight - while a workout is active, if users succeed at all reps and sets, automatically increment the weight up in the chart by the desired increment upon user input of "success".
+
+
+Intended New User UX:
+Startup
+prompted if you want to login, or create a new account
+enter create a new account
+type username
+type password
+user is brought to initial routine setup
+prompted for exercise name
+set count
+rep count
+set 1 weight
+set 2 weight
+etc.
+Ask if add more or head to menu
+if add more, prompt for next exercise name, set, rep, etc.
+else send to menu
+menu has these options: start workout, add exercise, remove exercise, quit
+add, remove, and quit are self-explanatory
+start workout should begin the workout, showing the user each exercise goals (name, set, rep, weight), and prompting the user to input done to advance to the next exercise.
+once all exercises are done, send user back to menu
