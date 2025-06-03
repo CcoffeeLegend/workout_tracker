@@ -1,22 +1,43 @@
 def login_prompt() -> None:
-    
+    #This function runs on startup, checks whether the user is new or not, then runs user_registration or  user_login respectively            
+
     newuser = input("Hello! Are you a new or returning user?")
     if newuser == "new":
         user_registration()
     else: 
-        run_menu()
+        user_login()
 
-def user_registration() -> None
+def user_registration() -> None:
+    #This function runs for new users, prompting for username and password, saving that to json, then heading to create_routine    
+
     username = input("Enter a username: ")
     password = input("Enter a password: ")
 
-# print("What exercise would you like to do?")
-# exercise = input()
-    
-# print("How many sets would you like to do?")
-# sets = input()
+    create_routine()
 
-# print("How many reps in each set?")
-# reps = input()
+def create_routine() -> None:
+    #This function runs for new users
+    add_exercise()
 
-# print(f"So you'd like to do {sets} sets of {reps} reps for {exercise}?")
+def add_exercise() -> None:
+    #This function adds exercises to the routine
+    print("What exercise would you like to do?")
+    exercise = input()
+        
+    print("How many sets would you like to do?")
+    sets = input()
+
+    print("How many reps in each set?")
+    reps = input()
+
+    print(f"So you'd like to do {sets} sets of {reps} reps of {exercise}?")
+    add_confirm = input()
+    if add_confirm = True:
+        print(f"{exercise} added. Would you like to add another exercise?")
+        add_another = input()
+        if add_another = True:
+            add_exercise()
+        else
+            menu()
+    else
+        menu()
