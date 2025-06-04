@@ -35,13 +35,13 @@ def add_exercise() -> None:
 
     print(f"So you'd like to do {sets} sets of {reps} reps of {exercise}?")
     add_confirm = input()
-    if add_confirm = True:
+    if add_confirm.lower() in ['yes', 'y']:
         #implement adding the exercise to the routine here
         print(f"{exercise} added. Would you like to add another exercise?")
         add_another = input()
-        if add_another = True:
+        if add_another.lower() in ['yes', 'y']:
             add_exercise()
-        else
+        else:
             menu()
-    else
+    else:
         menu()
