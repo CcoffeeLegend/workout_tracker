@@ -1,0 +1,35 @@
+{
+  "testuser": {
+    "password": "testpass",
+    "routine": [
+      {
+        "exercise": "Squat",
+        "sets": 3,
+        "reps": 10,
+        "weight": 185
+      }
+    ]
+  },
+  "testuser2": {
+    "password": "testpass2",
+    "routine": [
+      {
+        "exercise": "Bench Press",
+        "sets": 4,
+        "reps": 8,
+        "weight": 135
+      }
+    ]
+  },
+  "testuser3": {
+    "password": "testpass3",
+    "routine": [
+      {
+        "exercise": "Deadlift",
+        "sets": 3,
+        "reps": 8,
+        "weight": 200
+      }
+    ]
+  }
+}
