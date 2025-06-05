@@ -1,8 +1,20 @@
 import json
 
-def load_users()
+userdata = {}
+
+def load_users():
+    try:
+        with open("userdata.json", "r") as file:
+            global userdata
+            userdata = json.load(file)
+            return userdata
+    except FileNotFoundError:
+        return {}
     
-def save_users()
+def save_users():
+    global userdata
+    with open("userdata.json", "w") as file:
+        json.dump(userdata, file, indent=4)
 
 def login_prompt() -> None:
     #This function runs on startup, checks whether the user is new or not, then runs user_registration or  user_login respectively            
@@ -40,7 +52,7 @@ def add_exercise() -> None:
     reps = input().strip()
 
     print(f"So you'd like to do {sets} sets of {reps} reps of {exercise}?")
-    add_confirm = input("Confirm (yes/no)": ).strip()
+    add_confirm = input("Confirm (yes/no): " ).strip()
     if add_confirm.lower() in ['yes', 'y']:
         #implement adding the exercise to the routine here
         print(f"{exercise} added. Would you like to add another exercise?")
