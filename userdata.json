@@ -6,7 +6,7 @@
         "exercise": "Squat",
         "sets": 3,
         "reps": 10,
-        "weight": 185
+        "weights": [185, 185, 185]
       }
     ]
   },
@@ -17,7 +17,7 @@
         "exercise": "Bench Press",
         "sets": 4,
         "reps": 8,
-        "weight": 135
+        "weights": [185, 185, 185]
       }
     ]
   },
@@ -28,7 +28,7 @@
         "exercise": "Deadlift",
         "sets": 3,
         "reps": 8,
-        "weight": 200
+        "weights": [185, 185, 185]
       }
     ]
   }

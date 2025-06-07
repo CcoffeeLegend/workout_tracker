@@ -2,7 +2,7 @@ import json
 
 userdata = {}
 
-def load_users():
+def load_userdata():
     try:
         with open("userdata.json", "r") as file:
             global userdata
@@ -11,7 +11,7 @@ def load_users():
     except FileNotFoundError:
         return {}
     
-def save_users():
+def save_userdata():
     global userdata
     with open("userdata.json", "w") as file:
         json.dump(userdata, file, indent=4)
@@ -43,7 +43,7 @@ def user_registration() -> None:
         "routine": []
     }
 
-    save_users()
+    save_userdata()
     create_routine(username)
 
 
