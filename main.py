@@ -63,7 +63,7 @@ def add_exercise(username: str) -> None:
     #This function adds exercises to the routine
     exercise = input("What exercise would you like to do?").strip()
     sets = int(input("How many sets would you like to do? ").strip())
-    reps = int(input("How many reps in each set? ").strip())
+    reps = int(input("How many reps would you like to do in each set? ").strip())
     weights = []
     for i in range(1, sets + 1):
         weight = int(input(f"Enter weight for set {i}: ").strip())
@@ -86,9 +86,9 @@ def add_exercise(username: str) -> None:
         if add_another.lower() in ['yes', 'y']:
             add_exercise(username)
         else:
-            menu(username)
+            return
     elif add_confirm.lower() in ['no', 'n']:
-        menu(username)
+        return
     else:
         input("Invalid input. Try again.").strip()
         add_exercise(username)
@@ -114,3 +114,32 @@ def menu(username: str) -> None:
             break
         else:
             print("Invalid choice. Try again.")
+
+def view_routine(username: str) -> None:
+    routine = userdata[username].get("routine", [])
+    if not routine:
+        print("No exercises in your routine.")
+        return
+
+    print("\nYour Routine:")
+    for exercise in routine:
+        print(f"- {exercise['exercise']}: {exercise['sets']} sets x {exercise['reps']} reps")
+        print("  Weights:", ", ".join(str(w) for w in exercise['weights']))
+
+def start_workout(username: str) -> None:
+    routine = userdata[username].get("routine", [])
+    if not routine:
+        print("No exercises found. Add some first.")
+        return
+
+    print("\nStarting workout!")
+    for exercise in routine:
+        print(f"\n{exercise['exercise']}")
+        for i, weight in enumerate(exercise['weights'], start=1):
+            print(f"Set {i}: {exercise['reps']} reps at {weight} lbs")
+            input("Type 'done' when complete: ")
+    print("Workout complete!")
+
+if __name__ == "__main__":
+    load_userdata()
+    login_prompt()
