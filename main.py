@@ -18,8 +18,15 @@ def save_userdata():
 
 def user_login():
     global userdata
-    input("Enter username: ").strip()
-    input("Enter password: ").strip()
+    username = input("Enter username: ").strip()
+    password = input("Enter password: ").strip()
+
+    if username in userdata and userdata[username]["password"] == password:
+        print("Login successful!")
+        menu(username)
+    else: 
+        print("Invalid credentials. Try again.")
+        login_prompt()
 
 
 def login_prompt() -> None:
@@ -54,9 +61,7 @@ def create_routine(username: str) -> None:
 
 def add_exercise(username: str) -> None:
     #This function adds exercises to the routine
-    print("What exercise would you like to do?")
-    exercise = input().strip()
-        
+    exercise = input("What exercise would you like to do?").strip()
     sets = int(input("How many sets would you like to do? ").strip())
     reps = int(input("How many reps in each set? ").strip())
     weights = []
@@ -67,12 +72,45 @@ def add_exercise(username: str) -> None:
     print(f"So you'd like to do {sets} sets of {reps} reps of {exercise}?")
     add_confirm = input("Confirm (yes/no): " ).strip()
     if add_confirm.lower() in ['yes', 'y']:
-        #implement adding the exercise to the routine here
+        userdata[username]["routine"].append({
+        "exercise": exercise,
+        "sets": sets,
+        "reps": reps,
+        "weights": weights            
+        })
+
+        save_userdata()
+
         print(f"{exercise} added. Would you like to add another exercise?")
         add_another = input("Confirm (yes/no): ").strip()
         if add_another.lower() in ['yes', 'y']:
             add_exercise(username)
         else:
             menu(username)
-    else:
+    elif add_confirm.lower() in ['no', 'n']:
         menu(username)
+    else:
+        input("Invalid input. Try again.").strip()
+        add_exercise(username)
+
+def menu(username: str) -> None:
+    while True:
+        print(f"\nWelcome, {username}! What would you like to do?")
+        print("1. Start workout")
+        print("2. Add exercise")
+        print("3. View routine")
+        print("4. Quit")
+
+        choice = input("Enter choice (1-4): ").strip()
+
+        if choice == "1":
+            start_workout(username)
+        elif choice == "2":
+            add_exercise(username)
+        elif choice == "3":
+            view_routine(username)
+        elif choice == "4":
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice. Try again.")
