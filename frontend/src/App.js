@@ -122,6 +122,15 @@ function App() {
   // New state variable for user settings menu
   const [showSettings, setShowSettings] = useState(false);
 
+  // New state variable for exercise unit in add exercise form
+  const [exerciseUnit, setExerciseUnit] = useState(unit); // default to user unit
+
+  // New state variable for recommended weight increment
+  const [recommendedIncrement, setRecommendedIncrement] = useState(2.5);
+
+  // New state variable for exercise category
+  const [exerciseCategory, setExerciseCategory] = useState("upper");
+
   // Always use normalized username for API calls
   const normalizedUsername = username.trim().toLowerCase();
 
@@ -175,7 +184,7 @@ function App() {
     setMessage(data.message || data.error);
     if (data.message) {
       setUsername(normalizedUsername);
-      setLoggedIn(true);
+      setLoggedIn(true;
     }
   };
 
@@ -210,8 +219,11 @@ function App() {
         sets,
         reps,
         weights,
-        auto_increment: autoIncrement,
-        routine_type: routineType
+        auto_increment: recommendedIncrement,
+        routine_type: routineType,
+        exercise_type: exerciseType,
+        unit: exerciseUnit,
+        category: exerciseCategory
       })
     });
     setExercise('');
@@ -578,6 +590,40 @@ function App() {
             <option value="bodyweight">Bodyweight</option>
           </select>
         </label>
+        <br />
+        <label>
+          Exercise Unit<br />
+          <select value={exerciseUnit} onChange={e => setExerciseUnit(e.target.value)} required>
+            <option value="lb">Pounds (lb)</option>
+            <option value="kg">Kilograms (kg)</option>
+          </select>
+        </label>
+        <label>
+          Exercise Category<br />
+          <select value={exerciseCategory} onChange={e => setExerciseCategory(e.target.value)} required>
+            <option value="arms">Arms</option>
+            <option value="legs">Legs</option>
+            <option value="chest">Chest</option>
+            <option value="back">Back</option>
+            <option value="upper">Upper Body</option>
+            <option value="lower">Lower Body</option>
+          </select>
+        </label>
+        <div>
+          <span>Recommended Increment: </span>
+          {exerciseUnit === "lb" ? (
+            <>
+              <button type="button" onClick={() => setRecommendedIncrement(2.5)}>2.5 lb (upper body)</button>
+              <button type="button" onClick={() => setRecommendedIncrement(5)}>5 lb (lower body)</button>
+            </>
+          ) : (
+            <>
+              <button type="button" onClick={() => setRecommendedIncrement(1.25)}>1.25 kg (upper body)</button>
+              <button type="button" onClick={() => setRecommendedIncrement(2.5)}>2.5 kg (lower body)</button>
+            </>
+          )}
+          <span style={{ marginLeft: 8 }}>Current: {recommendedIncrement} {exerciseUnit}</span>
+        </div>
         <br />
         <button type="submit" style={{ marginTop: 8 }}>Add Exercise to Routine</button>
       </form>

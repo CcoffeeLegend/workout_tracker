@@ -99,6 +99,10 @@ def add_routine(username):
     routine.weights = ','.join(str(float(w)) for w in data["weights"])
     routine.auto_increment = data["auto_increment"]
     routine.user_id = user.id
+    routine.routine_type = data.get("routine_type", "bodybuilding")
+    routine.exercise_type = data.get("exercise_type", "barbell")
+    routine.unit = data.get("unit", user.unit)
+    routine.category = data.get("category", "upper")
     db.session.add(routine)
     db.session.commit()
     return jsonify({"message": "Exercise added"})
