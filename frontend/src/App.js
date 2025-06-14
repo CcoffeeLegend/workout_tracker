@@ -37,6 +37,32 @@ function WeightsInput({ weights, setWeights, unit }) {
   );
 }
 
+function plateCalculator(targetWeight, unit = "lb", barWeight = null) {
+  let plateSizes, defaultBar;
+  if (unit === "lb") {
+    plateSizes = [45, 35, 25, 10, 5, 2.5];
+    defaultBar = 45;
+  } else {
+    plateSizes = [25, 20, 15, 10, 5, 2.5, 1.25];
+    defaultBar = 20;
+  }
+  barWeight = barWeight || defaultBar;
+  if (targetWeight < barWeight) return {};
+  let perSide = (targetWeight - barWeight) / 2;
+  const result = {};
+  for (const plate of plateSizes) {
+    const count = Math.floor(perSide / plate);
+    if (count > 0) {
+      result[plate] = count;
+      perSide -= plate * count;
+    }
+  }
+  if (Math.round(perSide * 100) / 100 > 0) {
+    result['unmatched'] = Math.round(perSide * 100) / 100;
+  }
+  return result;
+}
+
 function App() {
   // Auth state
   const [username, setUsername] = useState('');
@@ -60,6 +86,9 @@ function App() {
 
   // Unit state
   const [unit, setUnit] = useState("lb");
+
+  // Add state to track success for each exercise
+  const [successes, setSuccesses] = useState([]);
 
   // Always use normalized username for API calls
   const normalizedUsername = username.trim().toLowerCase();
@@ -268,13 +297,63 @@ function App() {
   // Workout UI
   if (workoutMode && Array.isArray(routine) && routine.length > 0) {
     const ex = routine[workoutIdx];
+    const weight = ex.weights[0]; // or let user pick set, or show all sets
+    const plates = plateCalculator(weight, unit);
+
+    const handleSuccess = () => {
+      setSuccesses([...successes, { id: ex.id, success: true }]);
+      nextExercise();
+    };
+    const handleFail = () => {
+      setSuccesses([...successes, { id: ex.id, success: false }]);
+      nextExercise();
+    };
+    const nextExercise = () => {
+      if (workoutIdx + 1 < routine.length) {
+        setWorkoutIdx(workoutIdx + 1);
+      } else {
+        // Only send successful exercise IDs to backend for increment
+        const completed = successes.filter(s => s.success).map(s => s.id);
+        fetch(`http://localhost:5000/api/workout/${normalizedUsername}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ completed })
+        }).then(res => res.json())
+          .then(data => {
+            setMessage(data.message);
+            setWorkoutMode(false);
+            setSuccesses([]);
+            fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
+              .then(res => res.json())
+              .then(data => setRoutine(data));
+          });
+      }
+    };
+
     return (
       <div>
         <h1>Workout: {ex.exercise}</h1>
         <p>Sets: {ex.sets}, Reps: {ex.reps}</p>
-        <p>Weights: {ex.weights.join(', ')} {unit}</p>
-        <button onClick={completeExercise}>
-          {workoutIdx + 1 < routine.length ? "Next Exercise" : "Finish Workout"}
+        <p>Weight: {weight} {unit}</p>
+        <div>
+          <strong>Plate breakdown per side:</strong>
+          <ul>
+            {Object.entries(plates).map(([plate, count]) =>
+              plate !== 'unmatched' ? (
+                <li key={plate}>{count} × {plate} {unit} plate{count > 1 ? 's' : ''}</li>
+              ) : (
+                <li key="unmatched" style={{ color: 'red' }}>
+                  Unmatched: {count} {unit} (cannot be loaded with standard plates)
+                </li>
+              )
+            )}
+          </ul>
+        </div>
+        <button onClick={handleSuccess}>
+          {workoutIdx + 1 < routine.length ? "Completed - Next Exercise" : "Completed - Finish Workout"}
+        </button>
+        <button onClick={handleFail} style={{ marginLeft: 8 }}>
+          {workoutIdx + 1 < routine.length ? "Failed - Next Exercise" : "Failed - Finish Workout"}
         </button>
       </div>
     );
