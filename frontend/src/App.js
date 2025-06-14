@@ -297,23 +297,17 @@ function App() {
   // Workout UI
   if (workoutMode && Array.isArray(routine) && routine.length > 0) {
     const ex = routine[workoutIdx];
-    const weight = ex.weights[0]; // or let user pick set, or show all sets
+    const weight = ex.weights[0];
     const plates = plateCalculator(weight, unit);
 
-    const handleSuccess = () => {
-      setSuccesses([...successes, { id: ex.id, success: true }]);
-      nextExercise();
-    };
-    const handleFail = () => {
-      setSuccesses([...successes, { id: ex.id, success: false }]);
-      nextExercise();
-    };
-    const nextExercise = () => {
+    const handleExerciseResult = (success) => {
+      const updatedSuccesses = [...successes, { id: ex.id, success }];
       if (workoutIdx + 1 < routine.length) {
+        setSuccesses(updatedSuccesses);
         setWorkoutIdx(workoutIdx + 1);
       } else {
         // Only send successful exercise IDs to backend for increment
-        const completed = successes.filter(s => s.success).map(s => s.id);
+        const completed = updatedSuccesses.filter(s => s.success).map(s => s.id);
         fetch(`http://localhost:5000/api/workout/${normalizedUsername}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -349,10 +343,10 @@ function App() {
             )}
           </ul>
         </div>
-        <button onClick={handleSuccess}>
+        <button onClick={() => handleExerciseResult(true)}>
           {workoutIdx + 1 < routine.length ? "Completed - Next Exercise" : "Completed - Finish Workout"}
         </button>
-        <button onClick={handleFail} style={{ marginLeft: 8 }}>
+        <button onClick={() => handleExerciseResult(false)} style={{ marginLeft: 8 }}>
           {workoutIdx + 1 < routine.length ? "Failed - Next Exercise" : "Failed - Finish Workout"}
         </button>
       </div>
