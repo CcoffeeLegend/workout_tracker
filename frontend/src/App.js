@@ -218,12 +218,60 @@ function App() {
       )}
       <h2>Add Exercise</h2>
       <form onSubmit={addExercise}>
-        <input value={exercise} onChange={e => setExercise(e.target.value)} placeholder="Exercise" required />
-        <input type="number" value={sets} onChange={e => setSets(Number(e.target.value))} min="1" placeholder="Sets" required />
-        <input type="number" value={reps} onChange={e => setReps(Number(e.target.value))} min="1" placeholder="Reps" required />
-        <input type="text" value={weights.join(',')} onChange={e => setWeights(e.target.value.split(',').map(Number))} placeholder="Weights (comma separated)" required />
-        <input type="number" value={autoIncrement} onChange={e => setAutoIncrement(Number(e.target.value))} placeholder="Auto-increment" />
-        <button type="submit">Add</button>
+        <label>
+          Exercise Name<br />
+          <input
+            value={exercise}
+            onChange={e => setExercise(e.target.value)}
+            placeholder="e.g. Squat"
+            required
+          />
+        </label>
+        <br />
+        <label>
+          Number of Sets<br />
+          <input
+            type="number"
+            value={sets}
+            onChange={e => setSets(Number(e.target.value))}
+            min="1"
+            required
+          />
+        </label>
+        <br />
+        <label>
+          Number of Reps per Set<br />
+          <input
+            type="number"
+            value={reps}
+            onChange={e => setReps(Number(e.target.value))}
+            min="1"
+            required
+          />
+        </label>
+        <br />
+        <label>
+          Weights for Each Set (comma separated)<br />
+          <input
+            type="text"
+            value={weights.join(',')}
+            onChange={e => setWeights(e.target.value.split(',').map(Number))}
+            placeholder="e.g. 100,105,110"
+            required
+          />
+        </label>
+        <br />
+        <label>
+          Auto-increment Weight (lbs/kg added after each workout)<br />
+          <input
+            type="number"
+            value={autoIncrement}
+            onChange={e => setAutoIncrement(Number(e.target.value))}
+            placeholder="e.g. 5"
+          />
+        </label>
+        <br />
+        <button type="submit">Add Exercise to Routine</button>
       </form>
       <button onClick={startWorkout} disabled={!Array.isArray(routine) || routine.length === 0}>Start Workout</button>
       {message && <p style={{ color: 'green' }}>{message}</p>}
