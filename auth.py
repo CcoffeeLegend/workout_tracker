@@ -1,4 +1,5 @@
 from app_core import menu, create_routine
+from storage import userdata, save_userdata
 
 def user_login():
     username = input("Enter username: ").strip().lower()
