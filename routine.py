@@ -1,4 +1,5 @@
 import json
+from storage import userdata, load_userdata, save_userdata
 
 userdata = {}
 

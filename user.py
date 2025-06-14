@@ -1,4 +1,4 @@
-userdata = {}
+from storage import userdata, load_userdata, save_userdata
 from routine import add_exercise
 
 def user_registration() -> None:

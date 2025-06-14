@@ -1,4 +1,4 @@
-userdata = {}
+from storage import userdata, load_userdata, save_userdata
 
 def start_workout(username: str) -> None:
     global userdata
