@@ -26,13 +26,16 @@ const PRESET_EXERCISES = [
 ];
 
 function WeightsInput({ weights, setWeights, unit }) {
-  const addWeight = () => setWeights([...weights, weights[weights.length - 1] || 0]);
-  const removeWeight = () => setWeights(weights.length > 1 ? weights.slice(0, -1) : [0]);
+  // Helper for quick weight increments
+  function getWeightIncrements() {
+    return unit === "lb" ? [2.5, 5, 10, 15, 20, 25, 45] : [1.25, 2.5, 5, 10, 15, 20, 25];
+  }
   const updateWeight = (idx, value) => {
     const newWeights = [...weights];
     newWeights[idx] = value;
     setWeights(newWeights);
   };
+  const addWeight = () => setWeights([...weights, weights[weights.length - 1] || 0]);
 
   return (
     <div>
@@ -45,19 +48,26 @@ function WeightsInput({ weights, setWeights, unit }) {
             value={w}
             min="0"
             step="1"
-            style={{ width: 70, marginLeft: 8, marginRight: 8 }}
+            style={{ width: 70, marginLeft: 8, marginRight: 8, fontSize: "1.1em" }}
             onChange={e => updateWeight(idx, Number(e.target.value))}
             required
           />
-          {weights.length > 1 && (
-            <button type="button" onClick={removeWeight} title="Remove this set" style={{ marginLeft: 4 }}>-</button>
-          )}
+          {getWeightIncrements().map(inc => (
+            <button
+              type="button"
+              key={inc}
+              style={{ marginLeft: 2, fontSize: "0.95em" }}
+              onClick={() => updateWeight(idx, Number(w) + inc)}
+            >
+              +{inc}
+            </button>
+          ))}
           {idx === weights.length - 1 && (
-            <button type="button" onClick={addWeight} title="Add another set" style={{ marginLeft: 4 }}>+</button>
+            <button type="button" onClick={addWeight} title="Add another set" style={{ marginLeft: 8 }}>+</button>
           )}
         </div>
       ))}
-      <small>Use + to add a set, - to remove the last set.</small>
+      <small>Use + to add a set.</small>
     </div>
   );
 }
@@ -197,7 +207,7 @@ function App() {
     setMessage(data.message || data.error);
     if (data.message) {
       setUsername(normalizedUsername);
-      setLoggedIn(true);
+      setLoggedIn(true;
     }
   };
 
@@ -480,11 +490,13 @@ function App() {
   }
 
   return (
-    <div>
+    <div style={{ fontFamily: "Segoe UI, Arial, sans-serif", fontSize: "1.15em", lineHeight: 1.6 }}>
       <h1>Your Routine</h1>
-      <button onClick={() => setShowSettings(true)} style={{ marginBottom: 8 }}>
-        User Settings
-      </button>
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <button onClick={() => setShowSettings(true)} style={{ margin: 16, fontSize: "1em" }}>
+          User Settings
+        </button>
+      </div>
       {showSettings && (
         <div style={{ border: "1px solid #ccc", padding: 16, background: "#fff", position: "absolute", zIndex: 10 }}>
           <h2>User Settings</h2>
@@ -504,7 +516,8 @@ function App() {
               <button onClick={() => editExercise(ex.id)}>Edit</button>
               <button onClick={() => deleteExercise(ex.id)}>Delete</button>
               <button onClick={async () => {
-                const newUnit = (ex.unit || unit) === "lb" ? "kg" : "lb";
+                const currentUnit = ex.unit || unit;
+                const newUnit = currentUnit === "lb" ? "kg" : "lb";
                 await fetch(`http://localhost:5000/api/routine/${normalizedUsername}/${ex.id}/unit`, {
                   method: "PUT",
                   headers: { "Content-Type": "application/json" },
@@ -514,148 +527,167 @@ function App() {
                   .then(res => res.json())
                   .then(data => setRoutine(data));
               }}>
-                Swap to {(ex.unit || unit) === "lb" ? "kg" : "lb"}
+                Swap to { (ex.unit || unit) === "lb" ? "kg" : "lb" }
               </button>
             </li>
           ))}
         </ul>
       )}
       <h2>Add Exercise</h2>
-      <form onSubmit={addExercise} style={{ border: '1px solid #ccc', padding: 16, borderRadius: 8, maxWidth: 400 }}>
-        <label>
-          Exercise Name<br />
-          <input
-            value={exercise}
-            onChange={e => setExercise(e.target.value)}
-            placeholder="e.g. Squat"
-            required
-            style={{ width: '100%', marginBottom: 8 }}
+      <div style={{ display: "flex", alignItems: "flex-start" }}>
+        <form onSubmit={addExercise} style={{ border: '1px solid #ccc', padding: 16, borderRadius: 8, maxWidth: 400 }}>
+          <label>
+            Exercise Name<br />
+            <input
+              value={exercise}
+              onChange={e => setExercise(e.target.value)}
+              placeholder="e.g. Squat"
+              required
+              style={{ width: '100%', marginBottom: 8 }}
+            />
+          </label>
+          <br />
+          <label>
+            Number of Sets<br />
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+              <input
+                type="number"
+                value={sets}
+                min="1"
+                max="20"
+                step="1"
+                onChange={e => setSets(Number(e.target.value))}
+                required
+                style={{ width: 60, textAlign: 'center', marginRight: 8, fontSize: "1.1em" }}
+              />
+              <button type="button" onClick={() => setSets(Math.max(1, sets - 1))} style={{ marginRight: 2 }}>-1</button>
+              <button type="button" onClick={() => setSets(sets + 1)} style={{ marginRight: 2 }}>+1</button>
+              {[3, 4].map(val => (
+                <button type="button" key={val} onClick={() => setSets(val)} style={{ marginRight: 2 }}>{val} sets</button>
+              ))}
+            </div>
+          </label>
+          <label>
+            Number of Reps per Set<br />
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+              <input
+                type="number"
+                value={reps}
+                min="1"
+                max="50"
+                step="1"
+                onChange={e => setReps(Number(e.target.value))}
+                required
+                style={{ width: 60, textAlign: 'center', marginRight: 8, fontSize: "1.1em" }}
+              />
+              <button type="button" onClick={() => setReps(Math.max(1, reps - 1))} style={{ marginRight: 2 }}>-1</button>
+              <button type="button" onClick={() => setReps(reps + 1)} style={{ marginRight: 2 }}>+1</button>
+              {[1, 2, 3, 6, 8, 12].map(val => (
+                <button type="button" key={val} onClick={() => setReps(val)} style={{ marginRight: 2 }}>{val} rep{val > 1 ? "s" : ""}</button>
+              ))}
+            </div>
+          </label>
+          <WeightsInput
+            weights={weights.length === sets ? weights : Array(sets).fill(0).map((_, i) => weights[i] || 0)}
+            setWeights={w => setWeights(w.length === sets ? w : Array(sets).fill(0).map((_, i) => w[i] || 0))}
+            unit={exerciseUnit}
           />
-        </label>
-        <br />
-        <label>
-          Number of Sets<br />
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-            <button type="button" onClick={() => setSets(Math.max(1, sets - 1))} style={{ width: 30 }}>-1</button>
-            <input
-              type="number"
-              value={sets}
-              min="1"
-              max="20"
-              step="1"
-              onChange={e => setSets(Number(e.target.value))}
-              required
-              style={{ width: 60, textAlign: 'center', margin: '0 8px' }}
-            />
-            <button type="button" onClick={() => setSets(sets + 1)} style={{ width: 30 }}>+1</button>
-            {quickSetButtons.map(val => (
-              <button type="button" key={val} onClick={() => setSets(val)} style={{ marginLeft: 4 }}>{val} sets</button>
+          <div style={{ margin: '8px 0' }}>
+            <span>Quick Weights: </span>
+            {getWeightIncrements().map((inc, idx) => (
+              <button
+                type="button"
+                key={inc}
+                style={{ marginRight: 4 }}
+                onClick={() => setWeights(weights.map(w => Number(w) + inc))}
+              >
+                +{inc} {exerciseUnit}
+              </button>
             ))}
           </div>
-        </label>
-        <label>
-          Number of Reps per Set<br />
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-            <button type="button" onClick={() => setReps(Math.max(1, reps - 1))} style={{ width: 30 }}>-1</button>
+          <br />
+          <label>
+            Auto-increment Weight ({exerciseUnit} added after each workout)<br />
             <input
               type="number"
-              value={reps}
-              min="1"
-              max="50"
-              step="1"
-              onChange={e => setReps(Number(e.target.value))}
-              required
-              style={{ width: 60, textAlign: 'center', margin: '0 8px' }}
+              value={autoIncrement}
+              onChange={e => setAutoIncrement(Number(e.target.value))}
+              placeholder="e.g. 5"
+              style={{ width: 100, marginBottom: 8 }}
             />
-            <button type="button" onClick={() => setReps(reps + 1)} style={{ width: 30 }}>+1</button>
-            {quickRepButtons.map(val => (
-              <button type="button" key={val} onClick={() => setReps(val)} style={{ marginLeft: 4 }}>{val} rep{val > 1 ? "s" : ""}</button>
-            ))}
+          </label>
+          <div>
+            <span>Recommended Increment: </span>
+            {exerciseUnit === "lb" ? (
+              <>
+                <button type="button" onClick={() => setRecommendedIncrement(2.5)}>2.5 lb (upper body)</button>
+                <button type="button" onClick={() => setRecommendedIncrement(5)}>5 lb (lower body)</button>
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={() => setRecommendedIncrement(1.25)}>1.25 kg (upper body)</button>
+                <button type="button" onClick={() => setRecommendedIncrement(2.5)}>2.5 kg (lower body)</button>
+              </>
+            )}
+            <span style={{ marginLeft: 8 }}>Current: {recommendedIncrement} {exerciseUnit}</span>
           </div>
-        </label>
-        <WeightsInput
-          weights={weights.length === sets ? weights : Array(sets).fill(0).map((_, i) => weights[i] || 0)}
-          setWeights={w => setWeights(w.length === sets ? w : Array(sets).fill(0).map((_, i) => w[i] || 0))}
-          unit={exerciseUnit}
-        />
-        <div style={{ margin: '8px 0' }}>
-          <span>Quick Weights: </span>
-          {getWeightIncrements().map((inc, idx) => (
-            <button
-              type="button"
-              key={inc}
-              style={{ marginRight: 4 }}
-              onClick={() => setWeights(weights.map(w => Number(w) + inc))}
-            >
-              +{inc} {exerciseUnit}
+          <br />
+          <label>
+            Training Style<br />
+            <select value={routineType} onChange={e => setRoutineType(e.target.value)} required>
+              <option value="bodybuilding">Bodybuilding</option>
+              <option value="powerlifting">Powerlifting</option>
+            </select>
+          </label>
+          <br />
+          <label>
+            Equipment Type<br />
+            <select value={exerciseType} onChange={e => setExerciseType(e.target.value)} required>
+              <option value="barbell">Barbell</option>
+              <option value="dumbbell">Dumbbell</option>
+              <option value="bodyweight">Bodyweight</option>
+            </select>
+          </label>
+          <br />
+          <label>
+            Exercise Unit<br />
+            <select value={exerciseUnit} onChange={e => setExerciseUnit(e.target.value)} required>
+              <option value="lb">Pounds (lb)</option>
+              <option value="kg">Kilograms (kg)</option>
+            </select>
+          </label>
+          <label>
+            Exercise Category<br />
+            <select value={exerciseCategory} onChange={e => setExerciseCategory(e.target.value)} required>
+              <option value="arms">Arms</option>
+              <option value="legs">Legs</option>
+              <option value="chest">Chest</option>
+              <option value="back">Back</option>
+              <option value="upper">Upper Body</option>
+              <option value="lower">Lower Body</option>
+            </select>
+          </label>
+          <br />
+          <button type="submit" style={{ marginTop: 8 }}>Add Exercise to Routine</button>
+        </form>
+        <div style={{ marginLeft: 24 }}>
+          <h3>Preset Exercises</h3>
+          {PRESET_EXERCISES.map((preset, idx) => (
+            <button key={idx} style={{ display: "block", marginBottom: 8 }} onClick={async () => {
+              await fetch(`http://localhost:5000/api/routine/${normalizedUsername}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(preset)
+              });
+              fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
+                .then(res => res.json())
+                .then(data => setRoutine(data));
+            }}>
+              {preset.label}
             </button>
           ))}
         </div>
-        <br />
-        <label>
-          Auto-increment Weight ({exerciseUnit} added after each workout)<br />
-          <input
-            type="number"
-            value={autoIncrement}
-            onChange={e => setAutoIncrement(Number(e.target.value))}
-            placeholder="e.g. 5"
-            style={{ width: 100, marginBottom: 8 }}
-          />
-        </label>
-        <div>
-          <span>Recommended Increment: </span>
-          {exerciseUnit === "lb" ? (
-            <>
-              <button type="button" onClick={() => setRecommendedIncrement(2.5)}>2.5 lb (upper body)</button>
-              <button type="button" onClick={() => setRecommendedIncrement(5)}>5 lb (lower body)</button>
-            </>
-          ) : (
-            <>
-              <button type="button" onClick={() => setRecommendedIncrement(1.25)}>1.25 kg (upper body)</button>
-              <button type="button" onClick={() => setRecommendedIncrement(2.5)}>2.5 kg (lower body)</button>
-            </>
-          )}
-          <span style={{ marginLeft: 8 }}>Current: {recommendedIncrement} {exerciseUnit}</span>
-        </div>
-        <br />
-        <label>
-          Routine Type<br />
-          <select value={routineType} onChange={e => setRoutineType(e.target.value)} required>
-            <option value="bodybuilding">Bodybuilding</option>
-            <option value="powerlifting">Powerlifting</option>
-          </select>
-        </label>
-        <br />
-        <label>
-          Exercise Type<br />
-          <select value={exerciseType} onChange={e => setExerciseType(e.target.value)} required>
-            <option value="barbell">Barbell</option>
-            <option value="dumbbell">Dumbbell</option>
-            <option value="bodyweight">Bodyweight</option>
-          </select>
-        </label>
-        <br />
-        <label>
-          Exercise Unit<br />
-          <select value={exerciseUnit} onChange={e => setExerciseUnit(e.target.value)} required>
-            <option value="lb">Pounds (lb)</option>
-            <option value="kg">Kilograms (kg)</option>
-          </select>
-        </label>
-        <label>
-          Exercise Category<br />
-          <select value={exerciseCategory} onChange={e => setExerciseCategory(e.target.value)} required>
-            <option value="arms">Arms</option>
-            <option value="legs">Legs</option>
-            <option value="chest">Chest</option>
-            <option value="back">Back</option>
-            <option value="upper">Upper Body</option>
-            <option value="lower">Lower Body</option>
-          </select>
-        </label>
-        <br />
-        <button type="submit" style={{ marginTop: 8 }}>Add Exercise to Routine</button>
-      </form>
+      </div>
       <button onClick={startWorkout} disabled={!Array.isArray(routine) || routine.length === 0}>Start Workout</button>
       <button onClick={handleDeleteAccount} style={{ color: "red", marginTop: 16 }}>Delete My Account</button>
       {message && <p style={{ color: 'green' }}>{message}</p>}
@@ -705,23 +737,6 @@ function App() {
           </button>
         </div>
       )}
-      <h3>Or add a preset exercise:</h3>
-      <div style={{ marginBottom: 12 }}>
-        {PRESET_EXERCISES.map((preset, idx) => (
-          <button key={idx} style={{ marginRight: 8, marginBottom: 8 }} onClick={async () => {
-            await fetch(`http://localhost:5000/api/routine/${normalizedUsername}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(preset)
-            });
-            fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
-              .then(res => res.json())
-              .then(data => setRoutine(data));
-          }}>
-            {preset.label}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
