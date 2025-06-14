@@ -31,6 +31,7 @@ class Routine(db.Model):
     routine_type = db.Column(db.String(32), default="bodybuilding")
     exercise_type = db.Column(db.String(32), default="barbell")
     unit = db.Column(db.String(2), default=None)  # "lb", "kg", or None for user default
+    category = db.Column(db.String(32), default="upper")  # e.g., "upper", "lower", etc.
 
 
 @app.route("/api/register", methods=["POST"])
