@@ -21,6 +21,8 @@ def save_userdata(data):
 @app.route("/api/register", methods=["POST"])
 def register():
     data = request.json
+    if not data or "username" not in data or "password" not in data:
+        return jsonify({"error": "Username and password are required"}), 400
     username = data["username"].strip().lower()
     password = data["password"]
     userdata = load_userdata()
@@ -33,6 +35,8 @@ def register():
 @app.route("/api/login", methods=["POST"])
 def login():
     data = request.json
+    if not data or "username" not in data or "password" not in data:
+        return jsonify({"error": "Username and password are required"}), 400
     username = data["username"].strip().lower()
     password = data["password"]
     userdata = load_userdata()
@@ -44,7 +48,9 @@ def login():
 def routine(username):
     userdata = load_userdata()
     if username not in userdata:
-        return jsonify({"error": "User not found"}), 404
+        response = jsonify({"error": "User not found"})
+        response.status_code = 404
+        return response
     if request.method == "GET":
         return jsonify(userdata[username]["routine"])
     elif request.method == "POST":
@@ -52,6 +58,8 @@ def routine(username):
         userdata[username]["routine"].append(exercise)
         save_userdata(userdata)
         return jsonify({"message": "Exercise added"})
+    # Ensure a response is always returned
+    return jsonify({"error": "Method not allowed"}), 405
 
 if __name__ == "__main__":
     app.run(debug=True)
