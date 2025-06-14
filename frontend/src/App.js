@@ -119,6 +119,9 @@ function App() {
   // Preset routine picker state
   const [showPresetRoutinePicker, setShowPresetRoutinePicker] = useState(false);
 
+  // New state variable for user settings menu
+  const [showSettings, setShowSettings] = useState(false);
+
   // Always use normalized username for API calls
   const normalizedUsername = username.trim().toLowerCase();
 
@@ -454,6 +457,18 @@ function App() {
   return (
     <div>
       <h1>Your Routine</h1>
+      <button onClick={() => setShowSettings(true)} style={{ marginBottom: 8 }}>
+        User Settings
+      </button>
+      {showSettings && (
+        <div style={{ border: "1px solid #ccc", padding: 16, background: "#fff", position: "absolute", zIndex: 10 }}>
+          <h2>User Settings</h2>
+          <button onClick={toggleUnit}>
+            Switch all exercises to {unit === "lb" ? "kg" : "lb"}
+          </button>
+          <button onClick={() => setShowSettings(false)} style={{ marginLeft: 8 }}>Close</button>
+        </div>
+      )}
       <button onClick={toggleUnit} style={{ marginBottom: 8 }}>
         Switch to {unit === "lb" ? "kg" : "lb"}
       </button>
@@ -463,9 +478,22 @@ function App() {
         <ul>
           {Array.isArray(routine) && routine.map((ex, idx) => (
             <li key={ex.id || idx}>
-              {ex.exercise} ({ex.routine_type || "bodybuilding"}): {ex.sets} sets x {ex.reps} reps, Weights: {ex.weights.join(', ')} {unit}, Auto-increment: {ex.auto_increment}
+              {ex.exercise} ({ex.routine_type || "bodybuilding"}): {ex.sets} sets x {ex.reps} reps, Weights: {ex.weights.join(', ')} {ex.unit || unit}, Auto-increment: {ex.auto_increment}
               <button onClick={() => editExercise(ex.id)}>Edit</button>
               <button onClick={() => deleteExercise(ex.id)}>Delete</button>
+              <button onClick={async () => {
+                const newUnit = (ex.unit || unit) === "lb" ? "kg" : "lb";
+                await fetch(`http://localhost:5000/api/routine/${normalizedUsername}/${ex.id}/unit`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ unit: newUnit })
+                });
+                fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
+                  .then(res => res.json())
+                  .then(data => setRoutine(data));
+              }}>
+                Swap to {(ex.unit || unit) === "lb" ? "kg" : "lb"}
+              </button>
             </li>
           ))}
         </ul>

@@ -28,8 +28,9 @@ class Routine(db.Model):
     weights = db.Column(db.String(120), nullable=False)
     auto_increment = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    routine_type = db.Column(db.String(32), default="bodybuilding")  # "bodybuilding" or "powerlifting"
-    exercise_type = db.Column(db.String(32), default="barbell")  # "barbell", "dumbbell", "bodyweight"
+    routine_type = db.Column(db.String(32), default="bodybuilding")
+    exercise_type = db.Column(db.String(32), default="barbell")
+    unit = db.Column(db.String(2), default=None)  # "lb", "kg", or None for user default
 
 
 @app.route("/api/register", methods=["POST"])
@@ -258,6 +259,45 @@ def get_user(username):
         "unit": user.unit,
         "goal": user.goal
     })
+
+@app.route("/api/routine/<username>/<int:rid>/unit", methods=["PUT"])
+def swap_exercise_unit(username, rid):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    routine = Routine.query.filter_by(id=rid, user_id=user.id).first()
+    if not routine:
+        return jsonify({"error": "Routine not found"}), 404
+    data = request.json
+    if not data or "unit" not in data:
+        return jsonify({"error": "Unit is required"}), 400
+    new_unit = data["unit"]
+    if new_unit not in ("lb", "kg"):
+        return jsonify({"error": "Unit must be 'lb' or 'kg'"}), 400
+    if routine.unit == new_unit:
+        return jsonify({"message": "Unit unchanged", "unit": routine.unit})
+
+    # Conversion logic (use your existing rounding/conversion helpers)
+    weights = [float(w) for w in routine.weights.split(',')]
+    if routine.exercise_type == "dumbbell":
+        if routine.unit == "lb" and new_unit == "kg":
+            weights = [round_to_dumbbell(w * 0.453592, "kg") for w in weights]
+        elif routine.unit == "kg" and new_unit == "lb":
+            weights = [round_to_dumbbell(w / 0.453592, "lb") for w in weights]
+    elif routine.exercise_type == "barbell":
+        if routine.unit == "lb" and new_unit == "kg":
+            weights = [round_to_kg_plate(w * 0.453592) for w in weights]
+        elif routine.unit == "kg" and new_unit == "lb":
+            weights = [round_to_lb_plate(w / 0.453592) for w in weights]
+    elif routine.exercise_type == "bodyweight":
+        if routine.unit == "lb" and new_unit == "kg":
+            weights = [round_bodyweight(w * 0.453592) for w in weights]
+        elif routine.unit == "kg" and new_unit == "lb":
+            weights = [round_bodyweight(w / 0.453592) for w in weights]
+    routine.weights = ','.join(str(w) for w in weights)
+    routine.unit = new_unit
+    db.session.commit()
+    return jsonify({"message": "Exercise unit updated", "unit": routine.unit})
 
 if __name__ == "__main__":
     # Ensure tables are created inside the app context
