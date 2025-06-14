@@ -71,17 +71,29 @@ def add_exercise(username: str) -> None:
         weight = int(input(f"Enter weight for set {i}: ").strip())
         weights.append(weight)
 
-    print(f"So you'd like to do {sets} sets of {reps} reps of {exercise}?")
+    while True:
+        try:
+            auto_inc = int(input("Enter auto-increment weight for this exercise (lbs): ").strip())
+            if auto_inc >= 0:
+                break  # exit loop if input is valid (zero or positive integer)
+            else:
+                print("Please enter zero or a positive integer.")
+        except ValueError:
+            print("Invalid input; please enter a number.")
+
+    print(f"So you'd like to do {sets} sets of {reps} reps of {exercise} with auto-increment {auto_inc} lbs?")
     add_confirm = input("Confirm (yes/no): " ).strip()
     if add_confirm.lower() in ['yes', 'y']:
         userdata[username]["routine"].append({
-        "exercise": exercise,
-        "sets": sets,
-        "reps": reps,
-        "weights": weights            
+            "exercise": exercise,
+            "sets": sets,
+            "reps": reps,
+            "weights": weights,
+            "auto_increment": auto_inc   # <-- added here
         })
 
         save_userdata()
+
 
         print(f"{exercise} added. Would you like to add another exercise?")
         add_another = input("Confirm (yes/no): ").strip()
@@ -169,7 +181,18 @@ def edit_exercise(username: str) -> None:
                 weight = int(input(f"Enter weight for set {i}: "))
                 weights.append(weight)
 
-            ex["sets"], ex["reps"], ex["weights"] = sets, reps, weights
+            while True:
+                try:
+                    auto_inc = int(input("New auto-increment weight for this exercise (lbs): ").strip())
+                    if auto_inc >= 0:
+                        break
+                    else:
+                        print("Please enter zero or a positive integer.")
+                except ValueError:
+                    print("Invalid input; please enter a number.")
+
+
+            ex["sets"], ex["reps"], ex["weights"], ex["auto_increment"] = sets, reps, weights, auto_inc
             save_userdata()
             print("Exercise updated.")
         else:
@@ -202,7 +225,27 @@ def start_workout(username: str) -> None:
         for i, weight in enumerate(exercise['weights'], start=1):
             print(f"Set {i}: {exercise['reps']} reps at {weight} lbs")
             input("Type 'done' when complete: ")
+
+        # Ask if exercise was completed successfully
+        while True:
+            success = input("Did you complete all sets and reps successfully? (yes/no): ").strip().lower()
+            if success in ['yes', 'y']:
+                # Only increment if auto_increment exists and > 0
+                increment = exercise.get("auto_increment", 0)
+                if increment > 0:
+                    # Increase each set's weight by increment
+                    exercise["weights"] = [w + increment for w in exercise["weights"]]
+                    print(f"Weights increased by {increment} lbs for {exercise['exercise']}.")
+                break
+            elif success in ['no', 'n']:
+                print(f"No weight increase for {exercise['exercise']}.")
+                break
+            else:
+                print("Invalid input. Please enter yes or no.")
+
+    save_userdata()
     print("Workout complete!")
+
 
 
 if __name__ == "__main__":
