@@ -149,6 +149,15 @@ function App() {
       body: JSON.stringify({ unit: newUnit })
     });
     setUnit(newUnit);
+    // Immediately refresh routine and user info after unit change
+    fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
+      .then(res => res.json())
+      .then(data => setRoutine(data));
+    fetch(`http://localhost:5000/api/user/${normalizedUsername}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.unit) setUnit(data.unit);
+      });
   };
 
   // Add Exercise
