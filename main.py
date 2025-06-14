@@ -37,8 +37,3 @@ def user_registration() -> None:
 
     save_userdata()
     create_routine(username)
-
-
-    save_userdata()
-    create_routine(username)
-
