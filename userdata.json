@@ -78,9 +78,9 @@
                 "sets": 3,
                 "reps": 6,
                 "weights": [
-                    205,
-                    230,
-                    255
+                    210,
+                    235,
+                    260
                 ],
                 "auto_increment": 5
             },
@@ -89,9 +89,9 @@
                 "sets": 3,
                 "reps": 8,
                 "weights": [
-                    145,
-                    165,
-                    185
+                    150,
+                    170,
+                    190
                 ],
                 "auto_increment": 5
             }

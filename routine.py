@@ -113,11 +113,18 @@ def start_workout(username):
     save_userdata()
     print("Workout complete!")
 
-def menu(username):
+def menu(username: str) -> None:
     while True:
-        print(f"\nWelcome, {username}! Choose:")
-        print("1. Start workout\n2. Add exercise\n3. View routine\n4. Quit\n5. Remove exercise\n6. Edit exercise")
-        choice = input("Choice: ").strip()
+        print(f"\nWelcome, {username}! What would you like to do?")
+        print("1. Start workout")
+        print("2. Add exercise")
+        print("3. View routine")
+        print("4. Remove exercise")
+        print("5. Edit exercise")
+        print("6. Quit")
+
+        choice = input("Enter choice (1-6): ").strip()
+
         if choice == "1":
             start_workout(username)
         elif choice == "2":
@@ -125,11 +132,11 @@ def menu(username):
         elif choice == "3":
             view_routine(username)
         elif choice == "4":
-            print("Goodbye!")
-            break
-        elif choice == "5":
             remove_exercise(username)
-        elif choice == "6":
+        elif choice == "5":
             edit_exercise(username)
+        elif choice == "6":
+            print("Goodbye!")
+            exit()
         else:
-            print("Invalid choice.")
+            print("Invalid choice. Try again.")
