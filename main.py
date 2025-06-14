@@ -31,10 +31,7 @@ def user_registration() -> None:
     username = input("Enter a username: ").strip().lower()
     password = input("Enter a password: ").strip()
 
-    userdata[username] = {
-        "password": password,
-        "routine": []
-    }
+    userdata[username] = {"routine": []}
 
     save_userdata()
     create_routine(username)
