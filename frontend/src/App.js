@@ -103,6 +103,7 @@ function App() {
   const [weights, setWeights] = useState([0]);
   const [autoIncrement, setAutoIncrement] = useState(0);
   const [routineType, setRoutineType] = useState("bodybuilding");
+  const [exerciseType, setExerciseType] = useState("barbell");
 
   // Workout state
   const [workoutMode, setWorkoutMode] = useState(false);
@@ -171,7 +172,7 @@ function App() {
     setMessage(data.message || data.error);
     if (data.message) {
       setUsername(normalizedUsername);
-      setLoggedIn(true);
+      setLoggedIn(true;
     }
   };
 
@@ -216,6 +217,7 @@ function App() {
     setWeights([0]);
     setAutoIncrement(0);
     setRoutineType("bodybuilding");
+    setExerciseType("barbell");
     // Refresh routine
     fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
       .then(res => res.json())
@@ -537,6 +539,15 @@ function App() {
           <select value={routineType} onChange={e => setRoutineType(e.target.value)} required>
             <option value="bodybuilding">Bodybuilding</option>
             <option value="powerlifting">Powerlifting</option>
+          </select>
+        </label>
+        <br />
+        <label>
+          Exercise Type<br />
+          <select value={exerciseType} onChange={e => setExerciseType(e.target.value)} required>
+            <option value="barbell">Barbell</option>
+            <option value="dumbbell">Dumbbell</option>
+            <option value="bodyweight">Bodyweight</option>
           </select>
         </label>
         <br />

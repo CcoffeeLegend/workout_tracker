@@ -29,6 +29,7 @@ class Routine(db.Model):
     auto_increment = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     routine_type = db.Column(db.String(32), default="bodybuilding")  # "bodybuilding" or "powerlifting"
+    exercise_type = db.Column(db.String(32), default="barbell")  # "barbell", "dumbbell", "bodyweight"
 
 
 @app.route("/api/register", methods=["POST"])
@@ -145,7 +146,16 @@ def start_workout(username):
     for rid in completed:
         routine = Routine.query.filter_by(id=rid, user_id=user.id).first()
         if routine and routine.auto_increment > 0:
-            weights = [int(w) + routine.auto_increment for w in routine.weights.split(',')]
+            weights = [float(w) for w in routine.weights.split(',')]
+            if routine.exercise_type == "dumbbell":
+                weights = [round_to_dumbbell(w + routine.auto_increment, user.unit) for w in weights]
+            elif routine.exercise_type == "barbell":
+                if user.unit == "lb":
+                    weights = [round_to_lb_plate(w + routine.auto_increment) for w in weights]
+                else:
+                    weights = [round_to_kg_plate(w + routine.auto_increment) for w in weights]
+            elif routine.exercise_type == "bodyweight":
+                weights = [round_bodyweight(w + routine.auto_increment) for w in weights]
             routine.weights = ','.join(str(w) for w in weights)
     db.session.commit()
     return jsonify({"message": "Workout complete, weights updated."})
@@ -171,18 +181,35 @@ def update_unit(username):
     def round_to_kg_plate(x):
         return round(x / 1.25) * 1.25
 
-    def lb_to_kg(lb):
-        return round_to_kg_plate(lb * 0.453592)
+    def round_to_dumbbell(x, unit):
+        # Dumbbells typically increase in 5 lb or 2.5 kg increments
+        if unit == "lb":
+            return round(x / 5) * 5
+        else:
+            return round(x / 2.5) * 2.5
 
-    def kg_to_lb(kg):
-        return round_to_lb_plate(kg / 0.453592)
+    def round_bodyweight(x):
+        # Allow any float, but you could round to 0.5 if desired
+        return round(x, 1)
 
     for routine in user.routines:
         weights = [float(w) for w in routine.weights.split(',')]
-        if user.unit == "lb" and new_unit == "kg":
-            weights = [lb_to_kg(w) for w in weights]
-        elif user.unit == "kg" and new_unit == "lb":
-            weights = [kg_to_lb(w) for w in weights]
+        if routine.exercise_type == "dumbbell":
+            if user.unit == "lb" and new_unit == "kg":
+                weights = [round_to_dumbbell(w * 0.453592, "kg") for w in weights]
+            elif user.unit == "kg" and new_unit == "lb":
+                weights = [round_to_dumbbell(w / 0.453592, "lb") for w in weights]
+        elif routine.exercise_type == "barbell":
+            if user.unit == "lb" and new_unit == "kg":
+                weights = [round_to_kg_plate(w * 0.453592) for w in weights]
+            elif user.unit == "kg" and new_unit == "lb":
+                weights = [round_to_lb_plate(w / 0.453592) for w in weights]
+        elif routine.exercise_type == "bodyweight":
+            # No conversion needed, or just convert units
+            if user.unit == "lb" and new_unit == "kg":
+                weights = [round_bodyweight(w * 0.453592) for w in weights]
+            elif user.unit == "kg" and new_unit == "lb":
+                weights = [round_bodyweight(w / 0.453592) for w in weights]
         routine.weights = ','.join(str(w) for w in weights)
     user.unit = new_unit
     db.session.commit()
