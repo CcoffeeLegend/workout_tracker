@@ -178,7 +178,7 @@ def update_unit(username):
         return round_to_lb_plate(kg / 0.453592)
 
     for routine in user.routines:
-        weights = [int(w) for w in routine.weights.split(',')]
+        weights = [float(w) for w in routine.weights.split(',')]
         if user.unit == "lb" and new_unit == "kg":
             weights = [lb_to_kg(w) for w in weights]
         elif user.unit == "kg" and new_unit == "lb":
