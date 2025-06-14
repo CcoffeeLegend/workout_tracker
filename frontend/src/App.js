@@ -197,7 +197,7 @@ function App() {
     setMessage(data.message || data.error);
     if (data.message) {
       setUsername(normalizedUsername);
-      setLoggedIn(true;
+      setLoggedIn(true);
     }
   };
 
