@@ -1,4 +1,3 @@
-from storage import userdata, load_userdata, save_userdata
 
 def yes_no_prompt(prompt: str) -> bool:
     while True:

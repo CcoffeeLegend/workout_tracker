@@ -1,4 +1,3 @@
-from workout import start_workout
 from storage import load_userdata, save_userdata, userdata
 from auth import user_registration, user_login
 from app_core import menu, create_routine
