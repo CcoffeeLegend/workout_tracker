@@ -1,5 +1,45 @@
 import React, { useState, useEffect } from 'react';
 
+function WeightsInput({ weights, setWeights }) {
+  // Add a new weight input (default to last value or 0)
+  const addWeight = () => setWeights([...weights, weights[weights.length - 1] || 0]);
+  // Remove the last weight input
+  const removeWeight = () => setWeights(weights.length > 1 ? weights.slice(0, -1) : [0]);
+  // Update a specific weight
+  const updateWeight = (idx, value) => {
+    const newWeights = [...weights];
+    newWeights[idx] = value;
+    setWeights(newWeights);
+  };
+
+  return (
+    <div>
+      <label>Weight for Each Set:</label>
+      {weights.map((w, idx) => (
+        <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+          <span>Set {idx + 1}:</span>
+          <input
+            type="number"
+            value={w}
+            min="0"
+            step="1"
+            style={{ width: 70, marginLeft: 8, marginRight: 8 }}
+            onChange={e => updateWeight(idx, Number(e.target.value))}
+            required
+          />
+          {weights.length > 1 && (
+            <button type="button" onClick={removeWeight} title="Remove this set" style={{ marginLeft: 4 }}>-</button>
+          )}
+          {idx === weights.length - 1 && (
+            <button type="button" onClick={addWeight} title="Add another set" style={{ marginLeft: 4 }}>+</button>
+          )}
+        </div>
+      ))}
+      <small>Use + to add a set, - to remove the last set.</small>
+    </div>
+  );
+}
+
 function App() {
   // Auth state
   const [username, setUsername] = useState('');
@@ -217,7 +257,7 @@ function App() {
         </ul>
       )}
       <h2>Add Exercise</h2>
-      <form onSubmit={addExercise}>
+      <form onSubmit={addExercise} style={{ border: '1px solid #ccc', padding: 16, borderRadius: 8, maxWidth: 400 }}>
         <label>
           Exercise Name<br />
           <input
@@ -225,41 +265,48 @@ function App() {
             onChange={e => setExercise(e.target.value)}
             placeholder="e.g. Squat"
             required
+            style={{ width: '100%', marginBottom: 8 }}
           />
         </label>
         <br />
         <label>
           Number of Sets<br />
-          <input
-            type="number"
-            value={sets}
-            onChange={e => setSets(Number(e.target.value))}
-            min="1"
-            required
-          />
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+            <button type="button" onClick={() => setSets(Math.max(1, sets - 1))} style={{ width: 30 }}>-</button>
+            <input
+              type="number"
+              value={sets}
+              min="1"
+              max="20"
+              step="1"
+              onChange={e => setSets(Number(e.target.value))}
+              required
+              style={{ width: 60, textAlign: 'center', margin: '0 8px' }}
+            />
+            <button type="button" onClick={() => setSets(sets + 1)} style={{ width: 30 }}>+</button>
+          </div>
         </label>
-        <br />
         <label>
           Number of Reps per Set<br />
-          <input
-            type="number"
-            value={reps}
-            onChange={e => setReps(Number(e.target.value))}
-            min="1"
-            required
-          />
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+            <button type="button" onClick={() => setReps(Math.max(1, reps - 1))} style={{ width: 30 }}>-</button>
+            <input
+              type="number"
+              value={reps}
+              min="1"
+              max="50"
+              step="1"
+              onChange={e => setReps(Number(e.target.value))}
+              required
+              style={{ width: 60, textAlign: 'center', margin: '0 8px' }}
+            />
+            <button type="button" onClick={() => setReps(reps + 1)} style={{ width: 30 }}>+</button>
+          </div>
         </label>
-        <br />
-        <label>
-          Weights for Each Set (comma separated)<br />
-          <input
-            type="text"
-            value={weights.join(',')}
-            onChange={e => setWeights(e.target.value.split(',').map(Number))}
-            placeholder="e.g. 100,105,110"
-            required
-          />
-        </label>
+        <WeightsInput
+          weights={weights.length === sets ? weights : Array(sets).fill(0).map((_, i) => weights[i] || 0)}
+          setWeights={w => setWeights(w.length === sets ? w : Array(sets).fill(0).map((_, i) => w[i] || 0))}
+        />
         <br />
         <label>
           Auto-increment Weight (lbs/kg added after each workout)<br />
@@ -268,10 +315,11 @@ function App() {
             value={autoIncrement}
             onChange={e => setAutoIncrement(Number(e.target.value))}
             placeholder="e.g. 5"
+            style={{ width: 100, marginBottom: 8 }}
           />
         </label>
         <br />
-        <button type="submit">Add Exercise to Routine</button>
+        <button type="submit" style={{ marginTop: 8 }}>Add Exercise to Routine</button>
       </form>
       <button onClick={startWorkout} disabled={!Array.isArray(routine) || routine.length === 0}>Start Workout</button>
       {message && <p style={{ color: 'green' }}>{message}</p>}
