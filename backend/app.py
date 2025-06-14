@@ -134,6 +134,24 @@ def delete_routine(username, rid):
     db.session.commit()
     return jsonify({"message": "Exercise deleted"})
 
+# Helper functions for rounding
+def round_to_lb_plate(x):
+    return round(x / 2.5) * 2.5
+
+def round_to_kg_plate(x):
+    return round(x / 1.25) * 1.25
+
+def round_to_dumbbell(x, unit):
+    # Dumbbells typically increase in 5 lb or 2.5 kg increments
+    if unit == "lb":
+        return round(x / 5) * 5
+    else:
+        return round(x / 2.5) * 2.5
+
+def round_bodyweight(x):
+    # Allow any float, but you could round to 0.5 if desired
+    return round(x, 1)
+
 @app.route("/api/workout/<username>", methods=["POST"])
 def start_workout(username):
     user = User.query.filter_by(username=username).first()
