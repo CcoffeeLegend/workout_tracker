@@ -2,7 +2,7 @@ import json
 
 userdata = {}
 
-def load_userdata():
+def load_userdata() -> dict:
     global userdata
     try:
         with open("userdata.json", "r") as file:
@@ -12,13 +12,14 @@ def load_userdata():
         userdata = {}
         return userdata
 
-def save_userdata():
+def save_userdata() -> None:
     global userdata
     with open("userdata.json", "w") as file:
         json.dump(userdata, file, indent=4)
 
 def add_exercise(username: str) -> None:
-    exercise = input("What exercise would you like to do? ").strip()
+    global userdata
+    exercise = input("What exercise would you like to do?").strip()
     sets = int(input("How many sets would you like to do? ").strip())
     reps = int(input("How many reps would you like to do in each set? ").strip())
     weights = []
@@ -37,7 +38,7 @@ def add_exercise(username: str) -> None:
             print("Invalid input; please enter a number.")
 
     print(f"So you'd like to do {sets} sets of {reps} reps of {exercise} with auto-increment {auto_inc} lbs?")
-    add_confirm = input("Confirm (yes/no): ").strip()
+    add_confirm = input("Confirm (yes/no): " ).strip()
     if add_confirm.lower() in ['yes', 'y']:
         userdata[username]["routine"].append({
             "exercise": exercise,
@@ -46,9 +47,7 @@ def add_exercise(username: str) -> None:
             "weights": weights,
             "auto_increment": auto_inc
         })
-
         save_userdata()
-
         print(f"{exercise} added. Would you like to add another exercise?")
         add_another = input("Confirm (yes/no): ").strip()
         if add_another.lower() in ['yes', 'y']:
@@ -62,6 +61,7 @@ def add_exercise(username: str) -> None:
         add_exercise(username)
 
 def remove_exercise(username: str) -> None:
+    global userdata
     routine = userdata[username]["routine"]
     if not routine:
         print("No exercises to remove.")
@@ -83,6 +83,7 @@ def remove_exercise(username: str) -> None:
         print("Invalid input. Must be a number.")
 
 def edit_exercise(username: str) -> None:
+    global userdata
     routine = userdata[username]["routine"]
     if not routine:
         print("No exercises to edit.")
@@ -123,6 +124,7 @@ def edit_exercise(username: str) -> None:
         print("Invalid input.")
 
 def view_routine(username: str) -> None:
+    global userdata
     routine = userdata[username].get("routine", [])
     if not routine:
         print("No exercises in your routine.")
