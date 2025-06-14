@@ -131,6 +131,19 @@ function App() {
   // New state variable for exercise category
   const [exerciseCategory, setExerciseCategory] = useState("upper");
 
+  // Helper for quick set/rep/weight buttons
+  const quickSetButtons = [3, 4];
+  const quickRepButtons = [1, 2, 3, 6, 8, 12];
+
+  // Helper for quick weight increment buttons
+  function getWeightIncrements() {
+    if (exerciseUnit === "lb") {
+      return [2.5, 5, 10, 15, 20, 25, 45];
+    } else {
+      return [1.25, 2.5, 5, 10, 15, 20, 25];
+    }
+  }
+
   // Always use normalized username for API calls
   const normalizedUsername = username.trim().toLowerCase();
 
@@ -184,7 +197,7 @@ function App() {
     setMessage(data.message || data.error);
     if (data.message) {
       setUsername(normalizedUsername);
-      setLoggedIn(true);
+      setLoggedIn(true;
     }
   };
 
@@ -481,9 +494,6 @@ function App() {
           <button onClick={() => setShowSettings(false)} style={{ marginLeft: 8 }}>Close</button>
         </div>
       )}
-      <button onClick={toggleUnit} style={{ marginBottom: 8 }}>
-        Switch to {unit === "lb" ? "kg" : "lb"}
-      </button>
       {Array.isArray(routine) && routine.length === 0 ? (
         <p>No exercises yet. Add your first exercise below!</p>
       ) : (
@@ -526,7 +536,7 @@ function App() {
         <label>
           Number of Sets<br />
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-            <button type="button" onClick={() => setSets(Math.max(1, sets - 1))} style={{ width: 30 }}>-</button>
+            <button type="button" onClick={() => setSets(Math.max(1, sets - 1))} style={{ width: 30 }}>-1</button>
             <input
               type="number"
               value={sets}
@@ -537,13 +547,16 @@ function App() {
               required
               style={{ width: 60, textAlign: 'center', margin: '0 8px' }}
             />
-            <button type="button" onClick={() => setSets(sets + 1)} style={{ width: 30 }}>+</button>
+            <button type="button" onClick={() => setSets(sets + 1)} style={{ width: 30 }}>+1</button>
+            {quickSetButtons.map(val => (
+              <button type="button" key={val} onClick={() => setSets(val)} style={{ marginLeft: 4 }}>{val} sets</button>
+            ))}
           </div>
         </label>
         <label>
           Number of Reps per Set<br />
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-            <button type="button" onClick={() => setReps(Math.max(1, reps - 1))} style={{ width: 30 }}>-</button>
+            <button type="button" onClick={() => setReps(Math.max(1, reps - 1))} style={{ width: 30 }}>-1</button>
             <input
               type="number"
               value={reps}
@@ -554,17 +567,33 @@ function App() {
               required
               style={{ width: 60, textAlign: 'center', margin: '0 8px' }}
             />
-            <button type="button" onClick={() => setReps(reps + 1)} style={{ width: 30 }}>+</button>
+            <button type="button" onClick={() => setReps(reps + 1)} style={{ width: 30 }}>+1</button>
+            {quickRepButtons.map(val => (
+              <button type="button" key={val} onClick={() => setReps(val)} style={{ marginLeft: 4 }}>{val} rep{val > 1 ? "s" : ""}</button>
+            ))}
           </div>
         </label>
         <WeightsInput
           weights={weights.length === sets ? weights : Array(sets).fill(0).map((_, i) => weights[i] || 0)}
           setWeights={w => setWeights(w.length === sets ? w : Array(sets).fill(0).map((_, i) => w[i] || 0))}
-          unit={unit}
+          unit={exerciseUnit}
         />
+        <div style={{ margin: '8px 0' }}>
+          <span>Quick Weights: </span>
+          {getWeightIncrements().map((inc, idx) => (
+            <button
+              type="button"
+              key={inc}
+              style={{ marginRight: 4 }}
+              onClick={() => setWeights(weights.map(w => Number(w) + inc))}
+            >
+              +{inc} {exerciseUnit}
+            </button>
+          ))}
+        </div>
         <br />
         <label>
-          Auto-increment Weight ({unit} added after each workout)<br />
+          Auto-increment Weight ({exerciseUnit} added after each workout)<br />
           <input
             type="number"
             value={autoIncrement}
@@ -573,6 +602,21 @@ function App() {
             style={{ width: 100, marginBottom: 8 }}
           />
         </label>
+        <div>
+          <span>Recommended Increment: </span>
+          {exerciseUnit === "lb" ? (
+            <>
+              <button type="button" onClick={() => setRecommendedIncrement(2.5)}>2.5 lb (upper body)</button>
+              <button type="button" onClick={() => setRecommendedIncrement(5)}>5 lb (lower body)</button>
+            </>
+          ) : (
+            <>
+              <button type="button" onClick={() => setRecommendedIncrement(1.25)}>1.25 kg (upper body)</button>
+              <button type="button" onClick={() => setRecommendedIncrement(2.5)}>2.5 kg (lower body)</button>
+            </>
+          )}
+          <span style={{ marginLeft: 8 }}>Current: {recommendedIncrement} {exerciseUnit}</span>
+        </div>
         <br />
         <label>
           Routine Type<br />
@@ -609,21 +653,6 @@ function App() {
             <option value="lower">Lower Body</option>
           </select>
         </label>
-        <div>
-          <span>Recommended Increment: </span>
-          {exerciseUnit === "lb" ? (
-            <>
-              <button type="button" onClick={() => setRecommendedIncrement(2.5)}>2.5 lb (upper body)</button>
-              <button type="button" onClick={() => setRecommendedIncrement(5)}>5 lb (lower body)</button>
-            </>
-          ) : (
-            <>
-              <button type="button" onClick={() => setRecommendedIncrement(1.25)}>1.25 kg (upper body)</button>
-              <button type="button" onClick={() => setRecommendedIncrement(2.5)}>2.5 kg (lower body)</button>
-            </>
-          )}
-          <span style={{ marginLeft: 8 }}>Current: {recommendedIncrement} {exerciseUnit}</span>
-        </div>
         <br />
         <button type="submit" style={{ marginTop: 8 }}>Add Exercise to Routine</button>
       </form>
