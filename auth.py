@@ -1,5 +1,5 @@
 from storage import userdata, load_userdata, save_userdata
-from main import menu, create_routine
+from app_core import menu, create_routine
 
 def user_login():
     global userdata
