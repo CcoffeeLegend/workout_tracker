@@ -9,9 +9,10 @@ def user_login():
     if username in userdata and userdata[username]["password"] == password:
         print("Login successful!")
         menu(username)
-    else:
+    else: 
         print("Invalid credentials. Try again.")
         login_prompt()
+
 
 
 def login_prompt() -> None:
@@ -24,18 +25,16 @@ def login_prompt() -> None:
 
 def user_registration() -> None:
     username = input("Enter a username: ").strip().lower()
-
-    if username in userdata:
-        print("Username already exists. Please try logging in.")
-        login_prompt()
-        return
-
     password = input("Enter a password: ").strip()
 
     userdata[username] = {
         "password": password,
         "routine": []
     }
+
+    save_userdata()
+    create_routine(username)
+
 
     save_userdata()
     create_routine(username)
