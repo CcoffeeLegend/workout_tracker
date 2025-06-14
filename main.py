@@ -59,6 +59,7 @@ def user_registration() -> None:
 def create_routine(username: str) -> None:
     #This function runs for new users
     add_exercise(username)
+    menu(username) 
 
 
 def add_exercise(username: str) -> None:
@@ -129,6 +130,7 @@ def menu(username: str) -> None:
             view_routine(username)
         elif choice == "4":
             print("Goodbye!")
+            break
         elif choice == "5":
             remove_exercise(username)
         elif choice == "6":
@@ -195,6 +197,8 @@ def edit_exercise(username: str) -> None:
             ex["sets"], ex["reps"], ex["weights"], ex["auto_increment"] = sets, reps, weights, auto_inc
             save_userdata()
             print("Exercise updated.")
+            menu(username)
+
         else:
             print("Invalid choice.")
     except ValueError:

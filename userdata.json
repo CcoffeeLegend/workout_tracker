@@ -69,5 +69,32 @@
                 ]
             }
         ]
+    },
+    "Mike": {
+        "password": "123",
+        "routine": [
+            {
+                "exercise": "Squat",
+                "sets": 3,
+                "reps": 6,
+                "weights": [
+                    205,
+                    230,
+                    255
+                ],
+                "auto_increment": 5
+            },
+            {
+                "exercise": "Bench Press",
+                "sets": 3,
+                "reps": 8,
+                "weights": [
+                    145,
+                    165,
+                    185
+                ],
+                "auto_increment": 5
+            }
+        ]
     }
 }
