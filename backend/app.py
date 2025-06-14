@@ -27,11 +27,7 @@ class Routine(db.Model):
     auto_increment = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-# Ensure tables are created before the app runs
-def create_tables():
-    db.create_all()
-
-create_tables()
+# Remove the old create_tables() and its call
 
 @app.route("/api/register", methods=["POST"])
 def register():
@@ -96,4 +92,7 @@ def routine(username):
     return jsonify({"error": "Method not allowed"}), 405
 
 if __name__ == "__main__":
+    # Ensure tables are created inside the app context
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
