@@ -46,43 +46,6 @@ def register():
     db.session.commit()
     return jsonify({"message": "Registered successfully"})
 
-# ...existing code...
-
-# Removed duplicate get_routine route handler to avoid function name conflict.
-
-
-@app.route("/api/routine/<username>/<int:rid>", methods=["PUT"])
-def update_routine(username, rid):
-    user = User.query.filter_by(username=username).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    routine = Routine.query.filter_by(id=rid, user_id=user.id).first()
-    if not routine:
-        return jsonify({"error": "Routine not found"}), 404
-    data = request.json
-    if not data:
-        return jsonify({"error": "No data provided"}), 400
-    routine.exercise = data.get("exercise", routine.exercise)
-    routine.sets = data.get("sets", routine.sets)
-    routine.reps = data.get("reps", routine.reps)
-    if "weights" in data:
-        routine.weights = ','.join(str(w) for w in data["weights"])
-    routine.auto_increment = data.get("auto_increment", routine.auto_increment)
-    db.session.commit()
-    return jsonify({"message": "Exercise updated"})
-
-@app.route("/api/routine/<username>/<int:rid>", methods=["DELETE"])
-def delete_routine_v1(username, rid):
-    user = User.query.filter_by(username=username).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    routine = Routine.query.filter_by(id=rid, user_id=user.id).first()
-    if not routine:
-        return jsonify({"error": "Routine not found"}), 404
-    db.session.delete(routine)
-    db.session.commit()
-    return jsonify({"message": "Exercise deleted"})
-
 @app.route("/api/login", methods=["POST"])
 def login():
     data = request.json
@@ -129,7 +92,37 @@ def routine(username):
         return jsonify({"message": "Exercise added"})
     return jsonify({"error": "Method not allowed"}), 405
 
-# ...existing code...
+@app.route("/api/routine/<username>/<int:rid>", methods=["PUT"])
+def update_routine(username, rid):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    routine = Routine.query.filter_by(id=rid, user_id=user.id).first()
+    if not routine:
+        return jsonify({"error": "Routine not found"}), 404
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    routine.exercise = data.get("exercise", routine.exercise)
+    routine.sets = data.get("sets", routine.sets)
+    routine.reps = data.get("reps", routine.reps)
+    if "weights" in data:
+        routine.weights = ','.join(str(w) for w in data["weights"])
+    routine.auto_increment = data.get("auto_increment", routine.auto_increment)
+    db.session.commit()
+    return jsonify({"message": "Exercise updated"})
+
+@app.route("/api/routine/<username>/<int:rid>", methods=["DELETE"])
+def delete_routine_v1(username, rid):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    routine = Routine.query.filter_by(id=rid, user_id=user.id).first()
+    if not routine:
+        return jsonify({"error": "Routine not found"}), 404
+    db.session.delete(routine)
+    db.session.commit()
+    return jsonify({"message": "Exercise deleted"})
 
 @app.route("/api/routine/<username>", methods=["GET"])
 def get_routine(username):
@@ -200,6 +193,23 @@ def delete_routine(username, rid):
     db.session.delete(routine)
     db.session.commit()
     return jsonify({"message": "Exercise deleted"})
+
+@app.route("/api/workout/<username>", methods=["POST"])
+def start_workout(username):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    completed = data.get("completed", [])
+    for rid in completed:
+        routine = Routine.query.filter_by(id=rid, user_id=user.id).first()
+        if routine and routine.auto_increment > 0:
+            weights = [int(w) + routine.auto_increment for w in routine.weights.split(',')]
+            routine.weights = ','.join(str(w) for w in weights)
+    db.session.commit()
+    return jsonify({"message": "Workout complete, weights updated."})
 
 if __name__ == "__main__":
     # Ensure tables are created inside the app context
