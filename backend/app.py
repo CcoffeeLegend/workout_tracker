@@ -158,12 +158,35 @@ def update_unit(username):
     data = request.json
     if not data or "unit" not in data:
         return jsonify({"error": "Unit is required"}), 400
-    unit = data.get("unit")
-    if unit not in ("lb", "kg"):
+    new_unit = data.get("unit")
+    if new_unit not in ("lb", "kg"):
         return jsonify({"error": "Unit must be 'lb' or 'kg'"}), 400
-    user.unit = unit
+    if user.unit == new_unit:
+        return jsonify({"message": "Unit unchanged", "unit": user.unit})
+
+    # Conversion and rounding to real-world plate increments
+    def round_to_lb_plate(x):
+        return round(x / 2.5) * 2.5
+
+    def round_to_kg_plate(x):
+        return round(x / 1.25) * 1.25
+
+    def lb_to_kg(lb):
+        return round_to_kg_plate(lb * 0.453592)
+
+    def kg_to_lb(kg):
+        return round_to_lb_plate(kg / 0.453592)
+
+    for routine in user.routines:
+        weights = [int(w) for w in routine.weights.split(',')]
+        if user.unit == "lb" and new_unit == "kg":
+            weights = [lb_to_kg(w) for w in weights]
+        elif user.unit == "kg" and new_unit == "lb":
+            weights = [kg_to_lb(w) for w in weights]
+        routine.weights = ','.join(str(int(w)) if new_unit == "lb" else str(w) for w in weights)
+    user.unit = new_unit
     db.session.commit()
-    return jsonify({"message": "Unit updated", "unit": user.unit})
+    return jsonify({"message": "Unit updated and weights converted", "unit": user.unit})
 
 @app.route("/api/user/<username>", methods=["DELETE"])
 def delete_account(username):
