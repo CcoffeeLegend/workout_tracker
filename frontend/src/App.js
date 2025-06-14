@@ -20,14 +20,18 @@ function App() {
   const [workoutIdx, setWorkoutIdx] = useState(0);
   const [completedIds, setCompletedIds] = useState([]);
 
+  // Always use normalized username for API calls
+  const normalizedUsername = username.trim().toLowerCase();
+
   // Fetch routine after login or when updated
   useEffect(() => {
     if (loggedIn) {
-      fetch(`http://localhost:5000/api/routine/${username}`)
+      fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
         .then(res => res.json())
         .then(data => setRoutine(data));
     }
-  }, [loggedIn, username]);
+    // eslint-disable-next-line
+  }, [loggedIn, normalizedUsername]);
 
   // Registration
   const register = async (e) => {
@@ -35,11 +39,14 @@ function App() {
     const res = await fetch('http://localhost:5000/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username: normalizedUsername, password })
     });
     const data = await res.json();
     setMessage(data.message || data.error);
-    if (data.message) setLoggedIn(true);
+    if (data.message) {
+      setUsername(normalizedUsername);
+      setLoggedIn(true);
+    }
   };
 
   // Login
@@ -48,17 +55,20 @@ function App() {
     const res = await fetch('http://localhost:5000/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username: normalizedUsername, password })
     });
     const data = await res.json();
     setMessage(data.message || data.error);
-    if (data.message) setLoggedIn(true);
+    if (data.message) {
+      setUsername(normalizedUsername);
+      setLoggedIn(true);
+    }
   };
 
   // Add Exercise
   const addExercise = async (e) => {
     e.preventDefault();
-    await fetch(`http://localhost:5000/api/routine/${username}`, {
+    await fetch(`http://localhost:5000/api/routine/${normalizedUsername}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -75,17 +85,17 @@ function App() {
     setWeights([0]);
     setAutoIncrement(0);
     // Refresh routine
-    fetch(`http://localhost:5000/api/routine/${username}`)
+    fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
       .then(res => res.json())
       .then(data => setRoutine(data));
   };
 
   // Delete Exercise
   const deleteExercise = async (id) => {
-    await fetch(`http://localhost:5000/api/routine/${username}/${id}`, {
+    await fetch(`http://localhost:5000/api/routine/${normalizedUsername}/${id}`, {
       method: 'DELETE'
     });
-    fetch(`http://localhost:5000/api/routine/${username}`)
+    fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
       .then(res => res.json())
       .then(data => setRoutine(data));
   };
@@ -97,7 +107,7 @@ function App() {
     const newReps = prompt("New reps:");
     const newWeights = prompt("New weights (comma separated):");
     const newAutoInc = prompt("New auto-increment:");
-    await fetch(`http://localhost:5000/api/routine/${username}/${id}`, {
+    await fetch(`http://localhost:5000/api/routine/${normalizedUsername}/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -108,7 +118,7 @@ function App() {
         auto_increment: Number(newAutoInc)
       })
     });
-    fetch(`http://localhost:5000/api/routine/${username}`)
+    fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
       .then(res => res.json())
       .then(data => setRoutine(data));
   };
@@ -127,7 +137,7 @@ function App() {
       setWorkoutIdx(workoutIdx + 1);
     } else {
       // End workout, call backend to auto-increment weights
-      fetch(`http://localhost:5000/api/workout/${username}`, {
+      fetch(`http://localhost:5000/api/workout/${normalizedUsername}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ completed: completedIds.concat(routine[workoutIdx].id) })
@@ -136,7 +146,7 @@ function App() {
           setMessage(data.message);
           setWorkoutMode(false);
           // Refresh routine
-          fetch(`http://localhost:5000/api/routine/${username}`)
+          fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
             .then(res => res.json())
             .then(data => setRoutine(data));
         });
@@ -164,7 +174,7 @@ function App() {
   }
 
   // Workout UI
-  if (workoutMode && routine.length > 0) {
+  if (workoutMode && Array.isArray(routine) && routine.length > 0) {
     const ex = routine[workoutIdx];
     return (
       <div>
@@ -179,7 +189,7 @@ function App() {
   }
 
   // Main UI
-  if (routine.error) {
+  if (routine && routine.error) {
     return (
       <div>
         <h1>Your Routine</h1>
@@ -193,12 +203,12 @@ function App() {
   return (
     <div>
       <h1>Your Routine</h1>
-      {routine.length === 0 ? (
+      {Array.isArray(routine) && routine.length === 0 ? (
         <p>No exercises yet. Add your first exercise below!</p>
       ) : (
         <ul>
-          {routine.map((ex, idx) => (
-            <li key={ex.id}>
+          {Array.isArray(routine) && routine.map((ex, idx) => (
+            <li key={ex.id || idx}>
               {ex.exercise}: {ex.sets} sets x {ex.reps} reps, Weights: {ex.weights.join(', ')} lbs, Auto-increment: {ex.auto_increment}
               <button onClick={() => editExercise(ex.id)}>Edit</button>
               <button onClick={() => deleteExercise(ex.id)}>Delete</button>
@@ -215,7 +225,7 @@ function App() {
         <input type="number" value={autoIncrement} onChange={e => setAutoIncrement(Number(e.target.value))} placeholder="Auto-increment" />
         <button type="submit">Add</button>
       </form>
-      <button onClick={startWorkout} disabled={routine.length === 0}>Start Workout</button>
+      <button onClick={startWorkout} disabled={!Array.isArray(routine) || routine.length === 0}>Start Workout</button>
       {message && <p style={{ color: 'green' }}>{message}</p>}
     </div>
   );
