@@ -30,3 +30,5 @@ def menu(username: str):
 def create_routine(username: str):
     print("Let's set up your initial routine.")
     add_exercise(username)
+    # After initial routine setup, go to menu
+    menu(username)

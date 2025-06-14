@@ -1,1 +1,18 @@
-{}
+{
+    "mike": {
+        "password": "123",
+        "routine": [
+            {
+                "exercise": "squat",
+                "sets": 3,
+                "reps": 8,
+                "weights": [
+                    135,
+                    145,
+                    155
+                ],
+                "auto_increment": 5
+            }
+        ]
+    }
+}
