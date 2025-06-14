@@ -1,7 +1,6 @@
-from storage import userdata, load_userdata, save_userdata
+from storage import userdata, save_userdata
 
 def start_workout(username: str) -> None:
-    global userdata
     routine = userdata[username].get("routine", [])
     if not routine:
         print("No exercises found. Add some first.")
@@ -29,9 +28,3 @@ def start_workout(username: str) -> None:
                 print("Invalid input. Please enter yes or no.")
 
     save_userdata()
-
-def save_userdata():
-    global userdata
-    import json
-    with open("userdata.json", "w") as file:
-        json.dump(userdata, file, indent=4)

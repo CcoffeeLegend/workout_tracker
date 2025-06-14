@@ -1,6 +1,6 @@
 from routine import load_userdata, save_userdata, add_exercise, remove_exercise, edit_exercise, view_routine, userdata
 from workout import start_workout
-from storage import userdata, load_userdata, save_userdata
+from storage import load_userdata
 from auth import user_registration, user_login
 from app_core import menu, create_routine
 
