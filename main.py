@@ -11,10 +11,12 @@ def load_userdata():
     except FileNotFoundError:
         return {}
     
+
 def save_userdata():
     global userdata
     with open("userdata.json", "w") as file:
         json.dump(userdata, file, indent=4)
+
 
 def user_login():
     global userdata
@@ -93,6 +95,7 @@ def add_exercise(username: str) -> None:
         input("Invalid input. Try again.").strip()
         add_exercise(username)
 
+
 def menu(username: str) -> None:
     while True:
         print(f"\nWelcome, {username}! What would you like to do?")
@@ -100,6 +103,9 @@ def menu(username: str) -> None:
         print("2. Add exercise")
         print("3. View routine")
         print("4. Quit")
+        print("5. Remove exercise")
+        print("6. Edit exercise")
+
 
         choice = input("Enter choice (1-4): ").strip()
 
@@ -111,9 +117,66 @@ def menu(username: str) -> None:
             view_routine(username)
         elif choice == "4":
             print("Goodbye!")
+        elif choice == "5":
+            remove_exercise(username)
+        elif choice == "6":
+            edit_exercise(username)
             break
         else:
             print("Invalid choice. Try again.")
+
+
+def remove_exercise(username: str) -> None:
+    routine = userdata[username]["routine"]
+    if not routine:
+        print("No exercises to remove.")
+        return
+
+    print("Select the number of the exercise to remove:")
+    for i, exercise in enumerate(routine, start=1):
+        print(f"{i}. {exercise['exercise']}")
+
+    try:
+        choice = int(input("Enter choice: "))
+        if 1 <= choice <= len(routine):
+            removed = routine.pop(choice - 1)
+            save_userdata()
+            print(f"{removed['exercise']} removed.")
+        else:
+            print("Invalid choice.")
+    except ValueError:
+        print("Invalid input. Must be a number.")
+
+def edit_exercise(username: str) -> None:
+    routine = userdata[username]["routine"]
+    if not routine:
+        print("No exercises to edit.")
+        return
+
+    print("Select the number of the exercise to edit:")
+    for i, exercise in enumerate(routine, start=1):
+        print(f"{i}. {exercise['exercise']}")
+
+    try:
+        choice = int(input("Enter choice: "))
+        if 1 <= choice <= len(routine):
+            ex = routine[choice - 1]
+            print(f"Editing {ex['exercise']}")
+            sets = int(input("New number of sets: "))
+            reps = int(input("New number of reps: "))
+            weights = []
+            for i in range(1, sets + 1):
+                weight = int(input(f"Enter weight for set {i}: "))
+                weights.append(weight)
+
+            ex["sets"], ex["reps"], ex["weights"] = sets, reps, weights
+            save_userdata()
+            print("Exercise updated.")
+        else:
+            print("Invalid choice.")
+    except ValueError:
+        print("Invalid input.")
+
 
 def view_routine(username: str) -> None:
     routine = userdata[username].get("routine", [])
@@ -125,6 +188,7 @@ def view_routine(username: str) -> None:
     for exercise in routine:
         print(f"- {exercise['exercise']}: {exercise['sets']} sets x {exercise['reps']} reps")
         print("  Weights:", ", ".join(str(w) for w in exercise['weights']))
+
 
 def start_workout(username: str) -> None:
     routine = userdata[username].get("routine", [])
@@ -139,6 +203,7 @@ def start_workout(username: str) -> None:
             print(f"Set {i}: {exercise['reps']} reps at {weight} lbs")
             input("Type 'done' when complete: ")
     print("Workout complete!")
+
 
 if __name__ == "__main__":
     load_userdata()
