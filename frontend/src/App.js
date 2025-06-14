@@ -179,19 +179,33 @@ function App() {
   }
 
   // Main UI
+  if (routine.error) {
+    return (
+      <div>
+        <h1>Your Routine</h1>
+        <p style={{ color: 'red' }}>{routine.error}</p>
+        <button onClick={() => setLoggedIn(false)}>Back to Login</button>
+        <p>{message}</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h1>Your Routine</h1>
-      <ul>
-        {(Array.isArray(routine) ? routine : []).map((ex, idx) => (
-          <li key={ex.id}>
-            {ex.exercise}: {ex.sets} sets x {ex.reps} reps, Weights: {ex.weights.join(', ')} lbs, Auto-increment: {ex.auto_increment}
-            <button onClick={() => editExercise(ex.id)}>Edit</button>
-            <button onClick={() => deleteExercise(ex.id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
-      {routine.error && <p style={{color: 'red'}}>{routine.error}</p>}
+      {routine.length === 0 ? (
+        <p>No exercises yet. Add your first exercise below!</p>
+      ) : (
+        <ul>
+          {routine.map((ex, idx) => (
+            <li key={ex.id}>
+              {ex.exercise}: {ex.sets} sets x {ex.reps} reps, Weights: {ex.weights.join(', ')} lbs, Auto-increment: {ex.auto_increment}
+              <button onClick={() => editExercise(ex.id)}>Edit</button>
+              <button onClick={() => deleteExercise(ex.id)}>Delete</button>
+            </li>
+          ))}
+        </ul>
+      )}
       <h2>Add Exercise</h2>
       <form onSubmit={addExercise}>
         <input value={exercise} onChange={e => setExercise(e.target.value)} placeholder="Exercise" required />
@@ -202,7 +216,7 @@ function App() {
         <button type="submit">Add</button>
       </form>
       <button onClick={startWorkout} disabled={routine.length === 0}>Start Workout</button>
-      <p>{message}</p>
+      {message && <p style={{ color: 'green' }}>{message}</p>}
     </div>
   );
 }
