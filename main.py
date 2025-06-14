@@ -16,11 +16,15 @@ def user_login():
 
 
 def login_prompt() -> None:
-    newuser = input("Hello! Are you a new or returning user? ").strip().lower()
-    if newuser == "new":
+    user_type = input("Hello! Are you a new or returning user? (n/r): ").strip().lower()
+    if user_type in ("n", "new"):
         user_registration()
-    else:
+    elif user_type in ("r", "returning"):
         user_login()
+    else:
+        print("Invalid input, please enter 'n' for new or 'r' for returning.")
+        login_prompt()
+
 
 
 def user_registration() -> None:
