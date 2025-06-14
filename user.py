@@ -1,4 +1,5 @@
 userdata = {}
+from routine import add_exercise
 
 def user_registration() -> None:
     global userdata
