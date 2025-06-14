@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
-function WeightsInput({ weights, setWeights }) {
-  // Add a new weight input (default to last value or 0)
+function WeightsInput({ weights, setWeights, unit }) {
   const addWeight = () => setWeights([...weights, weights[weights.length - 1] || 0]);
-  // Remove the last weight input
   const removeWeight = () => setWeights(weights.length > 1 ? weights.slice(0, -1) : [0]);
-  // Update a specific weight
   const updateWeight = (idx, value) => {
     const newWeights = [...weights];
     newWeights[idx] = value;
@@ -14,7 +11,7 @@ function WeightsInput({ weights, setWeights }) {
 
   return (
     <div>
-      <label>Weight for Each Set:</label>
+      <label>Weight for Each Set ({unit}):</label>
       {weights.map((w, idx) => (
         <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
           <span>Set {idx + 1}:</span>
@@ -54,21 +51,30 @@ function App() {
   const [reps, setReps] = useState(1);
   const [weights, setWeights] = useState([0]);
   const [autoIncrement, setAutoIncrement] = useState(0);
+  const [routineType, setRoutineType] = useState("bodybuilding");
 
   // Workout state
   const [workoutMode, setWorkoutMode] = useState(false);
   const [workoutIdx, setWorkoutIdx] = useState(0);
   const [completedIds, setCompletedIds] = useState([]);
 
+  // Unit state
+  const [unit, setUnit] = useState("lb");
+
   // Always use normalized username for API calls
   const normalizedUsername = username.trim().toLowerCase();
 
-  // Fetch routine after login or when updated
+  // Fetch routine and user info after login or when updated
   useEffect(() => {
     if (loggedIn) {
       fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
         .then(res => res.json())
         .then(data => setRoutine(data));
+      fetch(`http://localhost:5000/api/user/${normalizedUsername}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.unit) setUnit(data.unit);
+        });
     }
     // eslint-disable-next-line
   }, [loggedIn, normalizedUsername]);
@@ -79,7 +85,7 @@ function App() {
     const res = await fetch('http://localhost:5000/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: normalizedUsername, password })
+      body: JSON.stringify({ username: normalizedUsername, password, unit })
     });
     const data = await res.json();
     setMessage(data.message || data.error);
@@ -105,6 +111,17 @@ function App() {
     }
   };
 
+  // Toggle unit
+  const toggleUnit = async () => {
+    const newUnit = unit === "lb" ? "kg" : "lb";
+    await fetch(`http://localhost:5000/api/user/${normalizedUsername}/unit`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ unit: newUnit })
+    });
+    setUnit(newUnit);
+  };
+
   // Add Exercise
   const addExercise = async (e) => {
     e.preventDefault();
@@ -116,7 +133,8 @@ function App() {
         sets,
         reps,
         weights,
-        auto_increment: autoIncrement
+        auto_increment: autoIncrement,
+        routine_type: routineType
       })
     });
     setExercise('');
@@ -124,6 +142,7 @@ function App() {
     setReps(1);
     setWeights([0]);
     setAutoIncrement(0);
+    setRoutineType("bodybuilding");
     // Refresh routine
     fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
       .then(res => res.json())
@@ -147,6 +166,7 @@ function App() {
     const newReps = prompt("New reps:");
     const newWeights = prompt("New weights (comma separated):");
     const newAutoInc = prompt("New auto-increment:");
+    const newRoutineType = prompt("Routine type (bodybuilding/powerlifting):", "bodybuilding");
     await fetch(`http://localhost:5000/api/routine/${normalizedUsername}/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -155,7 +175,8 @@ function App() {
         sets: Number(newSets),
         reps: Number(newReps),
         weights: newWeights.split(',').map(Number),
-        auto_increment: Number(newAutoInc)
+        auto_increment: Number(newAutoInc),
+        routine_type: newRoutineType
       })
     });
     fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
@@ -193,6 +214,29 @@ function App() {
     }
   };
 
+  // Delete Account
+  const handleDeleteAccount = async () => {
+    const confirm = window.confirm("Are you sure you want to delete your account? This cannot be undone.");
+    if (!confirm) return;
+    const pwd = prompt("Please enter your password to confirm:");
+    if (!pwd) return;
+    const res = await fetch(`http://localhost:5000/api/user/${normalizedUsername}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: pwd })
+    });
+    const data = await res.json();
+    if (data.message) {
+      alert("Account deleted.");
+      setLoggedIn(false);
+      setUsername("");
+      setPassword("");
+      setRoutine([]);
+    } else {
+      alert(data.error || "Failed to delete account.");
+    }
+  };
+
   // Auth UI
   if (!loggedIn) {
     return (
@@ -201,6 +245,14 @@ function App() {
         <form onSubmit={register}>
           <input value={username} onChange={e => setUsername(e.target.value)} placeholder="Username" />
           <input value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" type="password" />
+          <label>
+            Weight Unit<br />
+            <select value={unit} onChange={e => setUnit(e.target.value)} required>
+              <option value="lb">Pounds (lb)</option>
+              <option value="kg">Kilograms (kg)</option>
+            </select>
+          </label>
+          <br />
           <button type="submit">Register</button>
         </form>
         <form onSubmit={login}>
@@ -220,7 +272,7 @@ function App() {
       <div>
         <h1>Workout: {ex.exercise}</h1>
         <p>Sets: {ex.sets}, Reps: {ex.reps}</p>
-        <p>Weights: {ex.weights.join(', ')} lbs</p>
+        <p>Weights: {ex.weights.join(', ')} {unit}</p>
         <button onClick={completeExercise}>
           {workoutIdx + 1 < routine.length ? "Next Exercise" : "Finish Workout"}
         </button>
@@ -243,13 +295,16 @@ function App() {
   return (
     <div>
       <h1>Your Routine</h1>
+      <button onClick={toggleUnit} style={{ marginBottom: 8 }}>
+        Switch to {unit === "lb" ? "kg" : "lb"}
+      </button>
       {Array.isArray(routine) && routine.length === 0 ? (
         <p>No exercises yet. Add your first exercise below!</p>
       ) : (
         <ul>
           {Array.isArray(routine) && routine.map((ex, idx) => (
             <li key={ex.id || idx}>
-              {ex.exercise}: {ex.sets} sets x {ex.reps} reps, Weights: {ex.weights.join(', ')} lbs, Auto-increment: {ex.auto_increment}
+              {ex.exercise} ({ex.routine_type || "bodybuilding"}): {ex.sets} sets x {ex.reps} reps, Weights: {ex.weights.join(', ')} {unit}, Auto-increment: {ex.auto_increment}
               <button onClick={() => editExercise(ex.id)}>Edit</button>
               <button onClick={() => deleteExercise(ex.id)}>Delete</button>
             </li>
@@ -306,10 +361,11 @@ function App() {
         <WeightsInput
           weights={weights.length === sets ? weights : Array(sets).fill(0).map((_, i) => weights[i] || 0)}
           setWeights={w => setWeights(w.length === sets ? w : Array(sets).fill(0).map((_, i) => w[i] || 0))}
+          unit={unit}
         />
         <br />
         <label>
-          Auto-increment Weight (lbs/kg added after each workout)<br />
+          Auto-increment Weight ({unit} added after each workout)<br />
           <input
             type="number"
             value={autoIncrement}
@@ -319,9 +375,18 @@ function App() {
           />
         </label>
         <br />
+        <label>
+          Routine Type<br />
+          <select value={routineType} onChange={e => setRoutineType(e.target.value)} required>
+            <option value="bodybuilding">Bodybuilding</option>
+            <option value="powerlifting">Powerlifting</option>
+          </select>
+        </label>
+        <br />
         <button type="submit" style={{ marginTop: 8 }}>Add Exercise to Routine</button>
       </form>
       <button onClick={startWorkout} disabled={!Array.isArray(routine) || routine.length === 0}>Start Workout</button>
+      <button onClick={handleDeleteAccount} style={{ color: "red", marginTop: 16 }}>Delete My Account</button>
       {message && <p style={{ color: 'green' }}>{message}</p>}
     </div>
   );

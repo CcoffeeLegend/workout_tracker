@@ -25,23 +25,28 @@ class Routine(db.Model):
     exercise = db.Column(db.String(120), nullable=False)
     sets = db.Column(db.Integer, nullable=False)
     reps = db.Column(db.Integer, nullable=False)
-    weights = db.Column(db.String(120), nullable=False)  # Store as comma-separated string
+    weights = db.Column(db.String(120), nullable=False)
     auto_increment = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    routine_type = db.Column(db.String(32), default="bodybuilding")  # "bodybuilding" or "powerlifting"
 
 
 @app.route("/api/register", methods=["POST"])
 def register():
     data = request.json
-    if not data or "username" not in data or "password" not in data:
-        return jsonify({"error": "Username and password are required"}), 400
+    if not data or "username" not in data or "password" not in data or "unit" not in data:
+        return jsonify({"error": "Username, password, and unit are required"}), 400
     username = data["username"].strip().lower()
     password = data["password"]
+    unit = data["unit"]
+    if unit not in ("lb", "kg"):
+        return jsonify({"error": "Unit must be 'lb' or 'kg'"}), 400
     if User.query.filter_by(username=username).first():
         return jsonify({"error": "Username already exists"}), 400
     user = User()
     user.username = username
     user.password = password
+    user.unit = unit
     db.session.add(user)
     db.session.commit()
     return jsonify({"message": "Registered successfully"})
@@ -210,6 +215,47 @@ def start_workout(username):
             routine.weights = ','.join(str(w) for w in weights)
     db.session.commit()
     return jsonify({"message": "Workout complete, weights updated."})
+
+@app.route("/api/user/<username>/unit", methods=["PUT"])
+def update_unit(username):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    data = request.json
+    if not data or "unit" not in data:
+        return jsonify({"error": "Unit is required"}), 400
+    unit = data.get("unit")
+    if unit not in ("lb", "kg"):
+        return jsonify({"error": "Unit must be 'lb' or 'kg'"}), 400
+    user.unit = unit
+    db.session.commit()
+    return jsonify({"message": "Unit updated", "unit": user.unit})
+
+@app.route("/api/user/<username>", methods=["DELETE"])
+def delete_account(username):
+    data = request.json
+    if not data or "password" not in data:
+        return jsonify({"error": "Password is required"}), 400
+    password = data.get("password")
+    user = User.query.filter_by(username=username).first()
+    if not user or user.password != password:
+        return jsonify({"error": "Invalid credentials"}), 401
+    # Delete all routines first
+    Routine.query.filter_by(user_id=user.id).delete()
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"message": "Account deleted"})
+
+@app.route("/api/user/<username>", methods=["GET"])
+def get_user(username):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    return jsonify({
+        "username": user.username,
+        "unit": user.unit,
+        "goal": user.goal
+    })
 
 if __name__ == "__main__":
     # Ensure tables are created inside the app context
