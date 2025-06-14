@@ -74,7 +74,7 @@ def get_routine(username):
             "exercise": r.exercise,
             "sets": r.sets,
             "reps": r.reps,
-            "weights": [int(w) for w in r.weights.split(',')],
+            "weights": [float(w) for w in r.weights.split(',')],
             "auto_increment": r.auto_increment
         }
         for r in user.routines
@@ -94,7 +94,7 @@ def add_routine(username):
     routine.exercise = data["exercise"]
     routine.sets = data["sets"]
     routine.reps = data["reps"]
-    routine.weights = ','.join(str(w) for w in data["weights"])
+    routine.weights = ','.join(str(float(w)) for w in data["weights"])
     routine.auto_increment = data["auto_increment"]
     routine.user_id = user.id
     db.session.add(routine)
@@ -116,7 +116,7 @@ def edit_routine(username, rid):
     routine.sets = data.get("sets", routine.sets)
     routine.reps = data.get("reps", routine.reps)
     if "weights" in data:
-        routine.weights = ','.join(str(w) for w in data["weights"])
+        routine.weights = ','.join(str(float(w)) for w in data["weights"])
     routine.auto_increment = data.get("auto_increment", routine.auto_increment)
     db.session.commit()
     return jsonify({"message": "Exercise updated"})
@@ -183,7 +183,7 @@ def update_unit(username):
             weights = [lb_to_kg(w) for w in weights]
         elif user.unit == "kg" and new_unit == "lb":
             weights = [kg_to_lb(w) for w in weights]
-        routine.weights = ','.join(str(int(w)) if new_unit == "lb" else str(w) for w in weights)
+        routine.weights = ','.join(str(w) for w in weights)
     user.unit = new_unit
     db.session.commit()
     return jsonify({"message": "Unit updated and weights converted", "unit": user.unit})

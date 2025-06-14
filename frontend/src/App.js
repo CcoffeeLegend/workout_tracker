@@ -40,14 +40,14 @@ function WeightsInput({ weights, setWeights, unit }) {
 function plateCalculator(targetWeight, unit = "lb", barWeight = null) {
   let plateSizes, defaultBar;
   if (unit === "lb") {
-    plateSizes = [45, 35, 25, 10, 5, 2.5];
+    plateSizes = [45, 35, 25, 10, 5, 2.5, 1.25];
     defaultBar = 45;
   } else {
-    plateSizes = [25, 20, 15, 10, 5, 2.5, 1.25];
+    plateSizes = [25, 20, 15, 10, 5, 2.5, 1.25, 0.5];
     defaultBar = 20;
   }
   barWeight = barWeight || defaultBar;
-  if (targetWeight < barWeight) return {};
+  if (targetWeight < barWeight) return { barOnly: true };
   let perSide = (targetWeight - barWeight) / 2;
   const result = {};
   for (const plate of plateSizes) {
@@ -340,17 +340,21 @@ function App() {
         <p>Weight: {weight} {unit}</p>
         <div>
           <strong>Plate breakdown per side:</strong>
-          <ul>
-            {Object.entries(plates).map(([plate, count]) =>
-              plate !== 'unmatched' ? (
-                <li key={plate}>{count} × {plate} {unit} plate{count > 1 ? 's' : ''}</li>
-              ) : (
-                <li key="unmatched" style={{ color: 'red' }}>
-                  Unmatched: {count} {unit} (cannot be loaded with standard plates)
-                </li>
-              )
-            )}
-          </ul>
+          {plates.barOnly ? (
+            <div>Use bar only</div>
+          ) : (
+            <ul>
+              {Object.entries(plates).map(([plate, count]) =>
+                plate !== 'unmatched' ? (
+                  <li key={plate}>{count} × {plate} {unit} plate{count > 1 ? 's' : ''}</li>
+                ) : (
+                  <li key="unmatched" style={{ color: 'red' }}>
+                    Unmatched: {count} {unit} (cannot be loaded with standard plates)
+                  </li>
+                )
+              )}
+            </ul>
+          )}
         </div>
         <button onClick={() => handleExerciseResult(true)}>
           {workoutIdx + 1 < routine.length ? "Completed - Next Exercise" : "Completed - Finish Workout"}
