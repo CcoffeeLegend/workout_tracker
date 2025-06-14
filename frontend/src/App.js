@@ -1,5 +1,30 @@
 import React, { useState, useEffect } from 'react';
 
+const PRESET_ROUTINES = [
+  {
+    name: "Full Body Beginner",
+    exercises: [
+      { exercise: "Squat", sets: 3, reps: 8, weights: [45, 45, 45], auto_increment: 5, routine_type: "bodybuilding" },
+      { exercise: "Bench Press", sets: 3, reps: 8, weights: [45, 45, 45], auto_increment: 5, routine_type: "bodybuilding" },
+      { exercise: "Deadlift", sets: 3, reps: 8, weights: [65, 65, 65], auto_increment: 10, routine_type: "bodybuilding" }
+    ]
+  },
+  {
+    name: "Push Day",
+    exercises: [
+      { exercise: "Bench Press", sets: 3, reps: 8, weights: [45, 45, 45], auto_increment: 5, routine_type: "bodybuilding" },
+      { exercise: "Overhead Press", sets: 3, reps: 8, weights: [35, 35, 35], auto_increment: 5, routine_type: "bodybuilding" },
+      { exercise: "Dumbbell Flies", sets: 3, reps: 8, weights: [15, 15, 15], auto_increment: 2, routine_type: "bodybuilding" }
+    ]
+  }
+];
+
+const PRESET_EXERCISES = [
+  { label: "Squat 3x8", exercise: "Squat", sets: 3, reps: 8, weights: [45, 45, 45], auto_increment: 5, routine_type: "bodybuilding" },
+  { label: "Bench Press 3x8", exercise: "Bench Press", sets: 3, reps: 8, weights: [45, 45, 45], auto_increment: 5, routine_type: "bodybuilding" },
+  { label: "Dumbbell Flies 3x8", exercise: "Dumbbell Flies", sets: 3, reps: 8, weights: [15, 15, 15], auto_increment: 2, routine_type: "bodybuilding" }
+];
+
 function WeightsInput({ weights, setWeights, unit }) {
   const addWeight = () => setWeights([...weights, weights[weights.length - 1] || 0]);
   const removeWeight = () => setWeights(weights.length > 1 ? weights.slice(0, -1) : [0]);
@@ -90,6 +115,9 @@ function App() {
   // Add state to track success for each exercise
   const [successes, setSuccesses] = useState([]);
 
+  // Preset routine picker state
+  const [showPresetRoutinePicker, setShowPresetRoutinePicker] = useState(false);
+
   // Always use normalized username for API calls
   const normalizedUsername = username.trim().toLowerCase();
 
@@ -98,7 +126,14 @@ function App() {
     if (loggedIn) {
       fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
         .then(res => res.json())
-        .then(data => setRoutine(data));
+        .then(data => {
+          setRoutine(data);
+          if (Array.isArray(data) && data.length === 0) {
+            setShowPresetRoutinePicker(true);
+          } else {
+            setShowPresetRoutinePicker(false);
+          }
+        });
       fetch(`http://localhost:5000/api/user/${normalizedUsername}`)
         .then(res => res.json())
         .then(data => {
@@ -378,6 +413,42 @@ function App() {
     );
   }
 
+  if (showPresetRoutinePicker) {
+    return (
+      <div>
+        <h2>Pick a Preset Routine or Start from Scratch</h2>
+        {PRESET_ROUTINES.map((preset, idx) => (
+          <div key={idx} style={{ border: "1px solid #ccc", margin: 8, padding: 8 }}>
+            <strong>{preset.name}</strong>
+            <ul>
+              {preset.exercises.map((ex, i) => (
+                <li key={i}>{ex.exercise}: {ex.sets}x{ex.reps} ({ex.weights.join(", ")} {unit})</li>
+              ))}
+            </ul>
+            <button onClick={async () => {
+              // Add all preset exercises to user's routine
+              for (const ex of preset.exercises) {
+                await fetch(`http://localhost:5000/api/routine/${normalizedUsername}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(ex)
+                });
+              }
+              // Refresh routine and hide picker
+              fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
+                .then(res => res.json())
+                .then(data => {
+                  setRoutine(data);
+                  setShowPresetRoutinePicker(false);
+                });
+            }}>Add This Routine</button>
+          </div>
+        ))}
+        <button onClick={() => setShowPresetRoutinePicker(false)}>Start from Scratch</button>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h1>Your Routine</h1>
@@ -474,6 +545,69 @@ function App() {
       <button onClick={startWorkout} disabled={!Array.isArray(routine) || routine.length === 0}>Start Workout</button>
       <button onClick={handleDeleteAccount} style={{ color: "red", marginTop: 16 }}>Delete My Account</button>
       {message && <p style={{ color: 'green' }}>{message}</p>}
+
+      {/* Preset Routine Picker */}
+      {showPresetRoutinePicker && (
+        <div style={{ marginTop: 32, padding: 16, border: '1px solid #ccc', borderRadius: 8, maxWidth: 400 }}>
+          <h2>Select a Preset Routine</h2>
+          {PRESET_ROUTINES.map(r => (
+            <div key={r.name} style={{ marginBottom: 16 }}>
+              <h3>{r.name}</h3>
+              <ul>
+                {r.exercises.map((ex, idx) => (
+                  <li key={idx}>
+                    {ex.exercise}: {ex.sets} sets x {ex.reps} reps, Weights: {ex.weights.join(', ')} {unit}
+                  </li>
+                ))}
+              </ul>
+              <button onClick={async () => {
+                // Add each exercise in the preset routine to the user's routine
+                for (const ex of r.exercises) {
+                  await fetch(`http://localhost:5000/api/routine/${normalizedUsername}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      exercise: ex.exercise,
+                      sets: ex.sets,
+                      reps: ex.reps,
+                      weights: ex.weights,
+                      auto_increment: ex.auto_increment,
+                      routine_type: ex.routine_type
+                    })
+                  });
+                }
+                // Refresh routine and close picker
+                fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
+                  .then(res => res.json())
+                  .then(data => setRoutine(data));
+                setShowPresetRoutinePicker(false);
+              }}>
+                Select This Routine
+              </button>
+            </div>
+          ))}
+          <button onClick={() => setShowPresetRoutinePicker(false)} style={{ marginTop: 8 }}>
+            Cancel
+          </button>
+        </div>
+      )}
+      <h3>Or add a preset exercise:</h3>
+      <div style={{ marginBottom: 12 }}>
+        {PRESET_EXERCISES.map((preset, idx) => (
+          <button key={idx} style={{ marginRight: 8, marginBottom: 8 }} onClick={async () => {
+            await fetch(`http://localhost:5000/api/routine/${normalizedUsername}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(preset)
+            });
+            fetch(`http://localhost:5000/api/routine/${normalizedUsername}`)
+              .then(res => res.json())
+              .then(data => setRoutine(data));
+          }}>
+            {preset.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
