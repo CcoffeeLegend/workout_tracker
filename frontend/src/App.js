@@ -183,7 +183,7 @@ function App() {
     <div>
       <h1>Your Routine</h1>
       <ul>
-        {routine.map((ex, idx) => (
+        {(Array.isArray(routine) ? routine : []).map((ex, idx) => (
           <li key={ex.id}>
             {ex.exercise}: {ex.sets} sets x {ex.reps} reps, Weights: {ex.weights.join(', ')} lbs, Auto-increment: {ex.auto_increment}
             <button onClick={() => editExercise(ex.id)}>Edit</button>
@@ -191,6 +191,7 @@ function App() {
           </li>
         ))}
       </ul>
+      {routine.error && <p style={{color: 'red'}}>{routine.error}</p>}
       <h2>Add Exercise</h2>
       <form onSubmit={addExercise}>
         <input value={exercise} onChange={e => setExercise(e.target.value)} placeholder="Exercise" required />
