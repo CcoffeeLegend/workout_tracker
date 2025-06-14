@@ -8,10 +8,37 @@ Minimum Specifications:
 Final Specification:
 1. Create a GUI
 
-Optional Specifications:
-1. provide recommended rep and set ranges, adjusted for routine status set as "Bodybuilding" or "Powerlifting"
-2. multiple routines, default routines
-3. toggle auto-increment weight - while a workout is active, if users succeed at all reps and sets, automatically increment the weight up in the chart by the desired increment upon user input of "success".
+Optional Specifications (Updated):
+
+1. Provide recommended rep and set ranges, adjusted for routine status set as "Bodybuilding" or "Powerlifting"
+   - Users select a training goal (e.g., "bodybuilding" or "powerlifting")
+   - Based on selection, the app suggests default rep/set ranges when adding exercises
+     (e.g., 3x10 for bodybuilding, 5x5 for powerlifting)
+
+2. Multiple routines conceptualized as workout days (e.g., Chest Day, Leg Day, etc.)
+   - Instead of a single routine list, users can create multiple named routines
+   - Each named routine (e.g., "Push Day", "Leg Day") is a list of exercises
+   - Data structure changes from a flat list to a dictionary of routine names
+   - Users choose or create a routine (day) before adding/viewing/starting workouts
+
+3. Toggle auto-increment weight
+   - Already implemented
+   - Each exercise includes an "auto_increment" value (e.g., +5 lbs)
+   - After successfully completing a workout, weights increase by the set amount
+
+4. Add lb/kg toggle per user
+   - During user registration, prompt user to choose weight unit preference ("lbs" or "kg")
+   - Store this preference in their profile
+   - All weight inputs and displays use the selected unit
+   - Allow users to toggle between lbs/kg in a "User Settings" menu
+
+5. User Settings menu
+   - New menu option called "User Settings"
+   - Centralized location for preferences like:
+     - Changing password
+     - Switching between lb/kg
+     - Changing training goal (e.g., bodybuilding, powerlifting)
+   - Keeps the main menu clean and functional options distinct from profile configuration
 
 
 Intended New User UX:
